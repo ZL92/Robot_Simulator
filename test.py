@@ -13,8 +13,9 @@ pygame.display.set_caption('Simulator')
 
 x = w_width/2
 y = w_height/2
-angle = math.radians(-90)
+angle = math.radians(45)
 radius = 100
+length = 2*radius
 v_l = 0
 v_r = 0
 run = True
@@ -46,11 +47,9 @@ old_angle = angle
 
 def ICC_Calculation():
     global v_l, v_r, radius, angle, x, y
-#    print("angle: {}".format(math.degrees(angle)))
     if v_l != v_r:
         icc_distance = (radius)*(v_l + v_r)/(v_r - v_l)         
         omega = (v_r - v_l)/(2*radius)
-#        print("angle: {}, omega: {}".format(angle, omega))
         icc_x = x - (icc_distance * np.sin(angle))
         icc_y = y - (icc_distance * np.cos(angle))
         
@@ -68,9 +67,7 @@ def ICC_Calculation():
                       icc_y, 
                       omega]).T
     
-        output_vector = np.dot(a, b) + c
-#        print("out: {}, output2 : {}; ANGLE {}".format(output_vector[0,0], output_vector[0,1], math.degrees(-output_vector[0,2])))
-        
+        output_vector = np.dot(a, b) + c        
         x = output_vector[0, 0]
         y = output_vector[0, 1]
         angle = output_vector[0, 2]
@@ -78,6 +75,39 @@ def ICC_Calculation():
         x = x + v_r * np.cos(angle)
         y = y + v_r * np.sin(angle)
 #    print("angle2: {}".format(math.degrees(angle)))
+        
+        
+def ICC_Calculation2(v_r, v_l, radius, angle, x, y):
+#    global v_l, v_r, radius, angle, x, y
+    if v_l != v_r:
+        icc_distance = (radius)*(v_l + v_r)/(v_r - v_l)         
+        omega = (v_r - v_l)/(2*radius)
+        icc_x = x - (icc_distance * np.sin(angle))
+        icc_y = y - (icc_distance * np.cos(angle))
+        
+        icc_x, icc_y = (x - icc_distance * np.sin(angle)), (y - icc_distance * np.cos(angle))
+        
+        a = np.matrix([ [np.cos(omega), -np.sin(omega), 0], 
+                        [np.sin(omega), np.cos(omega),  0], 
+                        [0,             0,              1]])
+    
+        b = np.array([x - icc_x, 
+                      y - icc_y, 
+                      angle]).T
+    
+        c = np.array([icc_x, 
+                      icc_y, 
+                      omega]).T
+    
+        output_vector = np.dot(a, b) + c        
+        x = output_vector[0, 0]
+        y = output_vector[0, 1]
+        angle = output_vector[0, 2]
+    if v_l == v_r:
+        x = x + v_r * -np.cos(angle)
+        y = y + v_r * np.sin(angle)
+#    print("angle2: {}".format(math.degrees(angle)))
+    return angle, x, y
 
         
         
@@ -95,28 +125,28 @@ borders = [
 
 ###################################################
 while run:
-    pygame.time.delay(100)
+    pygame.time.delay(60)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.KEYDOWN:
 #            print(event.key)
-            if event.key == 119:
+            if event.key == 119:        # W-Key
                 v_l += 1
-            if event.key == 115:
+            if event.key == 115:        # S-Key
                 v_l -= 1
-            if event.key == 111:
+            if event.key == 111:        # O-Key
                 v_r += 1
-            if event.key == 108:
+            if event.key == 108:        # L-Key
                 v_r -= 1
-            if event.key == 120:
+            if event.key == 120:        # X-Key
                 v_r = 0
                 v_l = 0
-            if event.key == 116:
+            if event.key == 116:        # T-Key
                 v_l += 1
                 v_r += 1
-            if event.key == 103:
+            if event.key == 103:        # G-Key
                 v_r -= 1
                 v_l -= 1
     win.fill((WHITE))
@@ -124,7 +154,7 @@ while run:
         pygame.draw.rect(win, BLACK, border)
     # oldx = x
     # oldy = y
-    ICC_Calculation()
+#    ICC_Calculation()
     # if((x<25 or x>775)):
     # 	print('x border')
     # 	pygame.draw.circle(win, (255, 255, 255), (int(oldx), int(y)), radius)
@@ -136,7 +166,9 @@ while run:
 #    print("print: {}".format(x + radius * np.cos(angle)))
     line = pygame.draw.line(win, BLACK, (x, y), (x + radius * -np.cos(angle),
                                           (y + radius * np.sin(angle))))
-#    pygame.transform.flip(line, 0, 1)
+    
+    angle, x, y = ICC_Calculation2(v_r, v_l, radius, angle, x, y)
+
 
     
     
