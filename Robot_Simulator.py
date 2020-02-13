@@ -1,15 +1,33 @@
 import pygame
 import math
 import numpy as np
+from utils import *
+
+w_width = 800
+w_height = 800
+walls_thickness = 20
 
 pygame.init()
-screen = pygame.display.set_mode((800, 800))
+screen = pygame.display.set_mode((w_height, w_width))
 done = False
 x = 30
 y = 30
 radius=20
 
+
 clock = pygame.time.Clock()
+
+
+################# RGB Colors #################
+
+
+BLACK = (0, 0, 0)
+WHITE = (255,255,255)
+RED = (255, 0, 0)
+GREEN = (13, 255, 0)
+
+
+##############################################
 
 
 def calpose(x, y, r, w, theta, deltat):
@@ -55,13 +73,29 @@ def UpdateState(x, y, vr, vl, r, deltat, l, theta):
     return newx, newy, newtheta
 
 ###################Initilization####################
-x = y = 30
-vr = vl = 1
+x = y = int(w_width/2)
+vr = vl = 0
 deltat=1
 l = radius/2
 theta = 0
 increment = 1
 r=0
+
+
+################### Walls #######################
+
+
+#pygame.display.
+
+borders = [
+    pygame.Rect(0, 0, w_width, walls_thickness), 
+    pygame.Rect(0, 0, walls_thickness, w_height), 
+    pygame.Rect(0, w_width-walls_thickness, w_width, walls_thickness), 
+    pygame.Rect(w_height-walls_thickness, 0, walls_thickness, w_height), 
+]
+
+
+
 
 ##################Display###########################
 while not done:
@@ -84,9 +118,18 @@ while not done:
     
     #Display
     screen.fill((255, 255, 255))
+    for border in borders:
+        pygame.draw.rect(screen, BLACK, border)
+    pygame.draw.circle(screen, (173, 255, 47), (x, y), radius)
+    
+    
     pygame.draw.circle(screen, (173, 255, 47), (int(x), int(y)), radius)
     endpoint=np.array([x+radius*math.sqrt(2)/2, y+radius*math.sqrt(2)/2])
-    pygame.draw.line(screen, (0, 0, 0), (x, y), (endpoint[0], endpoint[1]))
+    
+    newX = x + (endpoint[0] - x) * np.cos(theta) - (endpoint[1] - y) * np.sin(theta)
+    newY = y + (endpoint[0] - x) * np.sin(theta) - (endpoint[1] - y) * np.cos(theta)
+    
+    pygame.draw.line(screen, (0, 0, 0), (x, y), (newX, newY))
     pygame.display.flip()
     clock.tick(60)
     x, y, theta = UpdateState(x, y, vr, vl, r, deltat, l, theta)
