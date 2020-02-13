@@ -120,7 +120,7 @@ while not done:
     screen.fill((255, 255, 255))
     for border in borders:
         pygame.draw.rect(screen, BLACK, border)
-    pygame.draw.circle(screen, (173, 255, 47), (x, y), radius)
+    pygame.draw.circle(screen, (173, 255, 47), (int(x), int(y)), radius)
     
     
     pygame.draw.circle(screen, (173, 255, 47), (int(x), int(y)), radius)
