@@ -75,10 +75,10 @@ def UpdateState(x, y, vr, vl, r, deltat, l, theta):
 ###################Initilization####################
 x = y = int(w_width/2)
 vr = vl = 0
-deltat=1
+deltat = 1
 l = radius/2
-theta = 0
-increment = 1
+theta = 180
+increment = 0.1
 r=0
 
 
@@ -94,6 +94,8 @@ borders = [
     pygame.Rect(w_height-walls_thickness, 0, walls_thickness, w_height), 
 ]
 
+
+endpoint=np.array([x+radius*math.sqrt(0)/2, y+radius*math.sqrt(0)/2])
 
 
 
@@ -116,6 +118,8 @@ while not done:
     if pressed[pygame.K_t]: vr += increment; vl += increment
     if pressed[pygame.K_g]: vr -= increment; vl -= increment
     
+    vr = np.round(vr,2); vl = np.round(vl,2)
+    
     #Display
     screen.fill((255, 255, 255))
     for border in borders:
@@ -129,7 +133,7 @@ while not done:
     newX = x + (endpoint[0] - x) * np.cos(theta) - (endpoint[1] - y) * np.sin(theta)
     newY = y + (endpoint[0] - x) * np.sin(theta) - (endpoint[1] - y) * np.cos(theta)
     
-    pygame.draw.line(screen, (0, 0, 0), (x, y), (newX, newY))
+    pygame.draw.line(screen, (0, 0, 0), (x, y), (endpoint[0], endpoint[1])) #(newX, newY))
     pygame.display.flip()
     clock.tick(60)
     x, y, theta = UpdateState(x, y, vr, vl, r, deltat, l, theta)
