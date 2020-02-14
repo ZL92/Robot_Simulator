@@ -37,9 +37,6 @@ GREEN = (13, 255, 0)
 ## Initial "front" point
 #pygame.draw.line(win, BLACK, (x,y), ((x + (TODO - x) * np.cos(angle) - (TODO - y) * np.sin(angle)), (y + (TODO - x) * np.sin(angle) - (TODO - y) * np.cos(angle)))
 
-endpoint=np.array([x+radius*math.sqrt(2)/2, y+radius*math.sqrt(2)/2])
-print("endpoint: {}".format(endpoint))
-old_angle = angle
 
 ###########################################
 
