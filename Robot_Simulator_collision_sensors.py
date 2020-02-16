@@ -92,6 +92,8 @@ def sensing(sensor, angle):
         test2 = line_right.intersection(sensor)
         test3 = line_bottom.intersection(sensor)
         test4 = line_left.intersection(sensor)
+        test5 = test_line1.intersection(sensor)
+        test6 = test_line2.intersection(sensor)
         if not (test1.is_empty):
 #            print("Sensor {} intersects with {} at: {}".format(sensor, border, test1))
             detect = True
@@ -111,6 +113,16 @@ def sensing(sensor, angle):
 #            print("Sensor {} intersects with {} at: {}".format(sensor, border, test1))
             detect = True
             inter_pt = test4
+            dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
+        if not (test5.is_empty):
+#            print("Sensor {} intersects with {} at: {}".format(sensor, border, test1))
+            detect = True
+            inter_pt = test5
+            dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
+        if not (test6.is_empty):
+#            print("Sensor {} intersects with {} at: {}".format(sensor, border, test1))
+            detect = True
+            inter_pt = test6
             dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
 
     return detect, dist, inter_pt
@@ -172,6 +184,9 @@ def drawWalls():
         pygame.draw.line(win, RED, line_right.bounds[0:2], line_right.bounds[2:4],2),
         pygame.draw.line(win, RED, line_bottom.bounds[0:2], line_bottom.bounds[2:4],2),
         pygame.draw.line(win, RED, line_left.bounds[0:2], line_left.bounds[2:4],2),
+        pygame.draw.line(win, Color('orange'), test_line1.coords[0], test_line1.coords[1],2),
+        pygame.draw.line(win, Color('purple'), test_line2.coords[0], test_line2.coords[1],2),
+        
         ]
 
     return borders, borders_line
@@ -215,6 +230,11 @@ b3_e = Point(0 + margin, w_height - margin)
 b4_s = Point(0 + margin, w_height - margin)
 b4_e = Point(0 + margin, 0 + margin)
 
+start_pointP = Point(0 + margin,w_width/2) #### DEFINE THE RIGHT MOST POINT AS START POINT
+end_pointP = Point(200, w_width/3) #### DEFINE THE LEFT MOST POINT AS END POINT
+start_pointP2 = Point(200, w_width/3)
+end_pointP2 = Point(500,500)
+
 
 # TODO: CHANGE EVERYTHING TO POINT
 b1_sv = Vector2(0 + margin, 0 + margin)
@@ -231,6 +251,8 @@ line_right = LineString([b2_s, b2_e])
 line_bottom = LineString([b3_s, b3_e])
 line_left = LineString([b4_s, b4_e])
 
+test_line1 = LineString([start_pointP, end_pointP])
+test_line2 = LineString([start_pointP2, end_pointP2])
 
 
 ############### INITIALIZATION ####################
