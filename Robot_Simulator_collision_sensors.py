@@ -230,10 +230,10 @@ b3_e = Point(0 + margin, w_height - margin)
 b4_s = Point(0 + margin, w_height - margin)
 b4_e = Point(0 + margin, 0 + margin)
 
-start_pointP = Point(0 + margin,w_width/2) #### DEFINE THE RIGHT MOST POINT AS START POINT
-end_pointP = Point(200, w_width/3) #### DEFINE THE LEFT MOST POINT AS END POINT
-start_pointP2 = Point(200, w_width/3)
-end_pointP2 = Point(500,500)
+start_pointP = Point(200, w_width/3) #### DEFINE THE LEFT MOST POINT AS END POINT
+end_pointP = Point(0 + margin,w_width/2) #### DEFINE THE RIGHT MOST POINT AS START POINT
+end_pointP2 = Point(200, w_width/3)
+start_pointP2 = Point(500,500)
 
 
 # TODO: CHANGE EVERYTHING TO POINT
@@ -245,6 +245,11 @@ b3_sv = Vector2(w_width - margin, w_height - margin)
 b3_ev = Vector2(0 + margin, w_height - margin)
 b4_sv = Vector2(0 + margin, w_height - margin)
 b4_ev = Vector2(0 + margin, 0 + margin)
+
+start_point = Vector2(200, w_width/3) #### DEFINE THE LEFT MOST Vector AS END Vector
+end_point = Vector2(0 + margin,w_width/2) #### DEFINE THE RIGHT MOST Vector AS START Vector
+end_point2 = Vector2(200, w_width/3)
+start_point2 = Vector2(500,500)
 
 line_top = LineString([b1_s, b1_e])
 line_right = LineString([b2_s, b2_e])
@@ -266,10 +271,10 @@ bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
             
     
 ################# Define collison lines here ##########################
-start_point = Vector2(700,0) #### DEFINE THE RIGHT MOST POINT AS START POINT
-end_point = Vector2(0,0) #### DEFINE THE LEFT MOST POINT AS END POINT
-start_point2 = Vector2(0,700)
-end_point2 = Vector2(0,0)
+#start_point = Vector2(700,0) #### DEFINE THE RIGHT MOST POINT AS START POINT
+#end_point = Vector2(0,0) #### DEFINE THE LEFT MOST POINT AS END POINT
+#start_point2 = Vector2(0,700)
+#end_point2 = Vector2(0,0)
 #collison_walls = [[start_point,end_point],[start_point2,end_point2]]
 #collison_walls = [line_top.coords, line_right.coords, line_bottom.coords, line_left.coords]
 collison_walls = [
@@ -277,6 +282,8 @@ collison_walls = [
         [b2_sv, b2_ev],
         [b3_sv, b3_ev],
         [b4_sv, b4_ev],
+        [start_point,end_point],
+        [start_point2, end_point2]
         ]
 ####################################################################
 ########### ------- MAIN LOOP ------- #############
