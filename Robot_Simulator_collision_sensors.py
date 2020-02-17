@@ -203,18 +203,20 @@ def drawWalls():
     return borders, borders_line
 
 def collisionMovement(v_r, v_l, angle, theta):
-    if angle < 0:
-        angle += 2 * np.pi
-    if angle > np.pi/2 :
-        angle = np.pi - angle
+#    if angle < 0:
+#        angle += 2 * np.pi
+#    if angle > np.pi/2 :
+#        angle = np.pi - angle
     velocity = (v_r + v_l)/2
-    v_x = velocity * np.cos(angle)
+    v_x = velocity * -np.cos(angle)
     v_y = velocity * np.sin(angle)
     
-    v_wall = v_x * np.sin(angle) * np.cos(theta) + v_y * np.cos(angle) * np.sin(theta)
+#    v_wall = v_x * np.sin(angle) * np.cos(theta) + v_y * np.cos(angle) * np.sin(theta)
+    new_x = v_x * -np.cos(theta) - v_y * np.sin(theta)
+    new_y = v_x * np.sin(theta) + v_y * -np.cos(theta)
 #    v_nall = 0
-    
-    return (v_wall * np.cos(theta)), (v_wall * np.sin(theta))
+    return new_x, new_y
+#    return (v_wall * np.cos(theta)), (v_wall * np.sin(theta))
 
 def drawSensors():
     
@@ -364,6 +366,7 @@ while run:
        
         
     if(collision_count == 1):
+        print("Collision")
         if (colliding_walls[0][1].x - colliding_walls[0][0].x) == 0:
             theta = np.pi/2
         else:
