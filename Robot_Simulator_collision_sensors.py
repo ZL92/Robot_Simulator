@@ -203,8 +203,8 @@ def drawWalls():
         pygame.draw.line(win, RED, line_right.bounds[0:2], line_right.bounds[2:4],2),
         pygame.draw.line(win, RED, line_bottom.bounds[0:2], line_bottom.bounds[2:4],2),
         pygame.draw.line(win, RED, line_left.bounds[0:2], line_left.bounds[2:4],2),
-        pygame.draw.line(win, Color('orange'), test_line1.coords[0], test_line1.coords[1],2),
-        pygame.draw.line(win, Color('purple'), test_line2.coords[0], test_line2.coords[1],2),
+        pygame.draw.line(win, Color('orange'), test_line1.coords[0], test_line1.coords[1],4),
+        pygame.draw.line(win, Color('purple'), test_line2.coords[0], test_line2.coords[1],4),
         
         ]
 
@@ -242,20 +242,27 @@ def drawSensors():
 #        print("Distance for sensor {}, = {}".format(i, dist))
         
         #### TODO TEXT HERE
-        txt = create_font(str(round(dist,0)))
-        win.blit(txt, (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
-                                          (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors)))))
         ###
         if det:
             sensors.append(
-                    pygame.draw.line(win, GREEN, (int(x), int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
-                                          (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors))))),
+#                    pygame.draw.line(win, GREEN, (int(x), int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
+#                                          (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors))))),
+#                    )  
+                    pygame.draw.line(win, GREEN, (int(x), int(y)), (int_pt.x, int_pt.y)),
                     )  
+            txt = create_font(str(round(dist,0)))
+            win.blit(txt,  (int_pt.x, int_pt.y))
+
         else:
             sensors.append(
                     pygame.draw.line(win, RED, (int(x), int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
                                           (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors))))),
                     )
+                    
+            txt = create_font(str(round(dist,0)))
+            win.blit(txt, (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
+                                          (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors)))))
+
             
     return()
     
@@ -287,9 +294,10 @@ b3_ev = Vector2(0 + margin, w_height - margin)
 b4_sv = Vector2(0 + margin, w_height - margin)
 b4_ev = Vector2(0 + margin, 0 + margin)
 
-start_point = Vector2(200, w_width/3) #### DEFINE THE LEFT MOST Vector AS END Vector
-end_point = Vector2(0 + margin,w_width/2) #### DEFINE THE RIGHT MOST Vector AS START Vector
-end_point2 = Vector2(200, w_width/3)
+
+start_point = Vector2(200, 200) #### DEFINE THE LEFT MOST Vector2 AS END Vector2
+end_point = Vector2(0,0) #### DEFINE THE RIGHT MOST Vector2 AS START Vector2
+end_point2 = Vector2(200, 200)
 start_point2 = Vector2(300,300)
 
 line_top = LineString([b1_s, b1_e])
@@ -366,7 +374,7 @@ while run:
         if(Collision(center,radius,collison_walls[i][0],collison_walls[i][1]) == True):	
             collision_count +=1	
             colliding_walls.append(collison_walls[i])
-            print(collison_walls[i][0])	
+#            print(collison_walls[i][0])	
 
     if(collision_count == 0):	
         angle,x,y = next_angle,next_x,next_y	
@@ -378,7 +386,7 @@ while run:
         bot_c = Point((x), (y))
        
         
-    if(collision_count == 1):
+    elif(collision_count == 1):
         if (colliding_walls[0][1].x - colliding_walls[0][0].x) == 0:
             theta = np.pi/2
         else:
@@ -394,8 +402,8 @@ while run:
         line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
         bot_c = Point((x), (y))
     else:
-        x = next_x
-        y = next_y
+        x = x
+        y = y
         drawSensors()
         pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
