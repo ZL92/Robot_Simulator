@@ -24,7 +24,7 @@ y = w_height/2
 
 bot_c = Point(x,y)
 angle = math.radians(0)
-radius = 30
+radius = 20
 length = 2*radius
 sens_l = 3*radius
 
@@ -144,7 +144,6 @@ def Collision(center,radius,start_point,end_point):
         #print('line would hit the circle if extended')	
         return False	
     t = max(0, min(1, - b / (2 * a)))	
-    # print('Collision')	
     return True	
 
 def distance(p1,p2):	
@@ -249,10 +248,10 @@ b3_e = Point(0 + margin, w_height - margin)
 b4_s = Point(0 + margin, w_height - margin)
 b4_e = Point(0 + margin, 0 + margin)
 
-start_pointP = Point(200, w_width/3) #### DEFINE THE LEFT MOST POINT AS END POINT
-end_pointP = Point(0 + margin,w_width/2) #### DEFINE THE RIGHT MOST POINT AS START POINT
-end_pointP2 = Point(200, w_width/3)
-start_pointP2 = Point(500,500)
+start_pointP = Point(200, 200) #### DEFINE THE LEFT MOST POINT AS END POINT
+end_pointP = Point(0,0) #### DEFINE THE RIGHT MOST POINT AS START POINT
+end_pointP2 = Point(200, 200)
+start_pointP2 = Point(300,300)
 
 
 # TODO: CHANGE EVERYTHING TO POINT
@@ -268,7 +267,7 @@ b4_ev = Vector2(0 + margin, 0 + margin)
 start_point = Vector2(200, w_width/3) #### DEFINE THE LEFT MOST Vector AS END Vector
 end_point = Vector2(0 + margin,w_width/2) #### DEFINE THE RIGHT MOST Vector AS START Vector
 end_point2 = Vector2(200, w_width/3)
-start_point2 = Vector2(500,500)
+start_point2 = Vector2(300,300)
 
 line_top = LineString([b1_s, b1_e])
 line_right = LineString([b2_s, b2_e])
@@ -336,7 +335,6 @@ while run:
     #### Collision stuff ######
     next_angle, next_x, next_y = ICC_Calculation2(v_r, v_l, radius, angle, x, y)	
     center = Vector2(next_x,next_y)
-    print(math.degrees(angle+np.pi))
     end_line = Vector2(next_x + radius * -np.cos(next_angle),y + radius * np.sin(next_angle))	
     collision_count = 0	
     absolute_velocity = (v_r + v_l)/2	
@@ -344,7 +342,8 @@ while run:
     for i in range(len(collison_walls)):	
         if(Collision(center,radius,collison_walls[i][0],collison_walls[i][1]) == True):	
             collision_count +=1	
-            colliding_walls.append(collison_walls[i])	
+            colliding_walls.append(collison_walls[i])
+            print(collison_walls[i][0])	
 
     if(collision_count == 0):	
         angle,x,y = next_angle,next_x,next_y	
@@ -357,7 +356,6 @@ while run:
        
         
     if(collision_count == 1):
-        print("Collision")
         if (colliding_walls[0][1].x - colliding_walls[0][0].x) == 0:
             theta = np.pi/2
         else:
