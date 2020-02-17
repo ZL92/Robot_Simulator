@@ -57,7 +57,7 @@ def ICC_Calculation2(v_r, v_l, radius, angle, x, y):
         icc_x = x - (icc_distance * np.sin(angle))
         icc_y = y - (icc_distance * np.cos(angle))
         
-        icc_x, icc_y = (x - icc_distance * np.sin(angle)), (y - icc_distance * np.cos(angle))
+        icc_x, icc_y = (x - icc_distance * np.sin(angle)), (y + icc_distance * np.cos(angle))
         
         a = np.matrix([ [np.cos(omega), -np.sin(omega), 0], 
                         [np.sin(omega), np.cos(omega),  0], 
@@ -76,7 +76,7 @@ def ICC_Calculation2(v_r, v_l, radius, angle, x, y):
         y = output_vector[0, 1]
         angle = output_vector[0, 2]
     if v_l == v_r:
-        x = x + v_r * -np.cos(angle)
+        x = x + v_r * np.cos(angle)
         y = y + v_r * np.sin(angle)
 #    print("angle2: {}".format(math.degrees(angle)))
     return angle, x, y
@@ -232,12 +232,12 @@ def drawSensors():
 #        print("Distance for sensor {}, = {}".format(i, dist))
         if det:
             sensors.append(
-                    pygame.draw.line(win, GREEN, (int(x), int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
+                    pygame.draw.line(win, GREEN, (int(x), w_height-int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
                                           (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors))))),
                     )  
         else:
             sensors.append(
-                    pygame.draw.line(win, RED, (int(x), int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
+                    pygame.draw.line(win, RED, (int(x), w_height-int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
                                           (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors))))),
                     )
             
@@ -356,7 +356,7 @@ while run:
     if(collision_count == 0):	
         angle,x,y = next_angle,next_x,next_y	
         drawSensors()
-        pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+        pygame.draw.circle(win, GREEN, (int(x), w_height-int(y)), radius)
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
                                       (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
         line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10)) 
@@ -374,7 +374,7 @@ while run:
         x = x + x_offset
         y = y + y_offset
         drawSensors()
-        pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+        pygame.draw.circle(win, GREEN, (int(x), w_height-int(y)), radius)
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
                                       (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
         line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
@@ -383,7 +383,7 @@ while run:
         x = next_x
         y = next_y
         drawSensors()
-        pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+        pygame.draw.circle(win, GREEN, (int(x), w_height-int(y)), radius)
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
                                       (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
         line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
@@ -391,11 +391,7 @@ while run:
     ###########################
     # Update / Call next tick #
 
-#    print("ANGLE = {}".format(angle))
-    if angle > 2*np.pi : 
-        angle = angle - 2*np.pi
-    if angle < -2*np.pi:
-        angle = angle + 2*np.pi
+    
     pygame.display.update()
 ###################################################
 pygame.quit()
