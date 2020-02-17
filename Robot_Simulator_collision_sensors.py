@@ -169,13 +169,13 @@ def Slope(point1, point2,point3,point4):
     dx2 = x4 -x3
     if(dx == 0 and dx2 == 0):
         return 0
-    if(dx == 0):
+    elif(dx == 0):
         slope2 = dy2/dx2
         if dy>=0:
             return np.pi/2 - math.atan(slope2)
         else:
             return -np.pi/2 - math.atan(slope2)
-    if(dx2 == 0):
+    elif(dx2 == 0):
         slope1 = dy/dx
         if dy2>=0:
             return np.pi/2 - math.atan(slope1)
@@ -336,7 +336,7 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        if event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN:
             if event.key == 119:        # W-Key
                 v_l += 3
             if event.key == 115:        # S-Key
@@ -416,7 +416,7 @@ while run:
 #    print("ANGLE = {}".format(angle))
     if angle > 2*np.pi : 
         angle = angle - 2*np.pi
-    if angle < -2*np.pi:
+    elif angle < -2*np.pi:
         angle = angle + 2*np.pi
     pygame.display.update()
 ###################################################
