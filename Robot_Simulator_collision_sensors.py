@@ -12,8 +12,8 @@ from utils import *
 pygame.init()
 
 
-w_height = 1200
-w_width = 1200
+w_height = 800
+w_width = 800
 walls_thickness = 20
 
 win = pygame.display.set_mode((w_width, w_height))
@@ -203,17 +203,9 @@ def drawWalls():
     return borders, borders_line
 
 def collisionMovement(v_r, v_l, angle, theta):
-#    if angle < 0:
-#        angle += 2 * np.pi
-#    if angle > np.pi/2 :
-#        angle = np.pi - angle
     velocity = (v_r + v_l)/2
-    v_x = velocity * -np.cos(angle)
-    v_y = velocity * np.sin(angle)
-    
-#    v_wall = v_x * np.sin(angle) * np.cos(theta) + v_y * np.cos(angle) * np.sin(theta)
-    new_x = v_x * -np.cos(theta) - v_y * np.sin(theta)
-    new_y = v_x * np.sin(theta) + v_y * -np.cos(theta)
+    new_x = np.cos(angle)*np.cos(theta)*velocity
+    new_y = np.sin(angle)*np.sin(theta)*velocity
 #    v_nall = 0
     return new_x, new_y
 #    return (v_wall * np.cos(theta)), (v_wall * np.sin(theta))
@@ -315,7 +307,6 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.KEYDOWN:
-            print(event.key)
             if event.key == 119:        # W-Key
                 v_l += 1
             if event.key == 115:        # S-Key
@@ -339,13 +330,13 @@ while run:
     ### Redraw
     win.fill((WHITE))
     borders, borders_line = drawWalls()
-    
+     
     
     
     #### Collision stuff ######
     next_angle, next_x, next_y = ICC_Calculation2(v_r, v_l, radius, angle, x, y)	
     center = Vector2(next_x,next_y)
-    
+    print(math.degrees(angle+np.pi))
     end_line = Vector2(next_x + radius * -np.cos(next_angle),y + radius * np.sin(next_angle))	
     collision_count = 0	
     absolute_velocity = (v_r + v_l)/2	
@@ -372,10 +363,9 @@ while run:
         else:
             theta = math.atan((colliding_walls[0][1].y - colliding_walls[0][0].y)/(colliding_walls[0][1].x - colliding_walls[0][0].x))
        
-        x_offset, y_offset = collisionMovement(v_r, v_l, angle, theta)
-        
+        x_offset, y_offset = collisionMovement(v_r, v_l, angle + np.pi, theta)
         x = x + x_offset
-        y = y + y_offset
+        y = y - y_offset
         drawSensors()
         pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
