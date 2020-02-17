@@ -26,7 +26,7 @@ bot_c = Point(x,y)
 angle = math.radians(0)
 radius = 20
 length = 2*radius
-sens_l = 3*radius
+sens_l = 200#3*radius
 
 nb_sensors = 12
 
@@ -47,7 +47,16 @@ YELLOW = (255, 255, 0)
 
 ##############################################
 
+
+
 ################# Functions ##################
+
+def create_font(t,s=15,c=(0,0,0), b=False,i=False):
+    font = pygame.font.SysFont("Arial", s, bold=b, italic=i)
+    text = font.render(t, True, c)
+    return text
+#dist_text = create_font(tt)
+
 
 def ICC_Calculation2(v_r, v_l, radius, angle, x, y):
 #    global v_l, v_r, radius, angle, x, y
@@ -202,9 +211,17 @@ def drawWalls():
     return borders, borders_line
 
 def collisionMovement(v_r, v_l, angle, theta):
+#    if angle < 0:
+#        angle += 2 * np.pi
+#    if angle > np.pi/2 :
+#        angle = np.pi - angle
     velocity = (v_r + v_l)/2
-    new_x = np.cos(angle)*np.cos(theta)*velocity
-    new_y = np.sin(angle)*np.sin(theta)*velocity
+    new_x = np.cos(angle + np.pi)*np.cos(theta)*velocity
+    new_y = np.sin(angle + np.pi)*np.sin(theta)*velocity
+#   v_x = velocity * -np.cos(angle)
+#   v_y = velocity * np.sin(angle)
+    
+#   v_wall = v_x * np.sin(angle) * np.cos(theta) + v_y * -np.cos(angle) * np.sin(theta)
 #    v_nall = 0
     return new_x, new_y
 #    return (v_wall * np.cos(theta)), (v_wall * np.sin(theta))
@@ -223,6 +240,12 @@ def drawSensors():
     for i in range(len(sensors_lines)):
         det, dist, int_pt = sensing(sensors_lines[i], angle)      # returns 3 values ('detection (bool)', 'distance (value)', 'Intersection point(Point)')
 #        print("Distance for sensor {}, = {}".format(i, dist))
+        
+        #### TODO TEXT HERE
+        txt = create_font(str(round(dist,0)))
+        win.blit(txt, (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
+                                          (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors)))))
+        ###
         if det:
             sensors.append(
                     pygame.draw.line(win, GREEN, (int(x), int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
@@ -307,22 +330,22 @@ while run:
             run = False
         if event.type == pygame.KEYDOWN:
             if event.key == 119:        # W-Key
-                v_l += 1
+                v_l += 3
             if event.key == 115:        # S-Key
-                v_l -= 1
+                v_l -= 3
             if event.key == 111:        # O-Key
-                v_r += 1
+                v_r += 3
             if event.key == 108:        # L-Key
-                v_r -= 1
+                v_r -= 3
             if event.key == 120:        # X-Key
                 v_r = 0
                 v_l = 0
             if event.key == 116:        # T-Key
-                v_l += 1
-                v_r += 1
+                v_l += 3
+                v_r += 3
             if event.key == 103:        # G-Key
-                v_r -= 1
-                v_l -= 1
+                v_r -= 3
+                v_l -= 3
             if event.key == 98:         # B-Key
                 v_r = v_l = (v_r + v_l)/2
                 
@@ -361,7 +384,7 @@ while run:
         else:
             theta = math.atan((colliding_walls[0][1].y - colliding_walls[0][0].y)/(colliding_walls[0][1].x - colliding_walls[0][0].x))
        
-        x_offset, y_offset = collisionMovement(v_r, v_l, angle + np.pi, theta)
+        x_offset, y_offset = collisionMovement(v_r, v_l, angle, theta)
         x = x + x_offset
         y = y - y_offset
         drawSensors()
