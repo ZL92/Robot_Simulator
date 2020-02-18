@@ -344,22 +344,22 @@ while run:
             run = False
         elif event.type == pygame.KEYDOWN:
             if event.key == 119:        # W-Key
-                v_l += 3
+                v_l += 1
             if event.key == 115:        # S-Key
-                v_l -= 3
+                v_l -= 1
             if event.key == 111:        # O-Key
-                v_r += 3
+                v_r += 1
             if event.key == 108:        # L-Key
-                v_r -= 3
+                v_r -= 1
             if event.key == 120:        # X-Key
                 v_r = 0
                 v_l = 0
             if event.key == 116:        # T-Key
-                v_l += 3
-                v_r += 3
+                v_l += 1
+                v_r += 1
             if event.key == 103:        # G-Key
-                v_r -= 3
-                v_l -= 3
+                v_r -= 1
+                v_l -= 1
             if event.key == 98:         # B-Key
                 v_r = v_l = (v_r + v_l)/2
                 
@@ -407,9 +407,24 @@ while run:
         line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
         drawspeeds()
         bot_c = Point((x), (y))
+#    elif(collision_count > 1):
+##        if (colliding_walls[0][1].x - colliding_walls[0][0].x) == 0:
+##            theta = np.pi/2
+##        else:
+##            theta = math.atan((colliding_walls[0][1].y - colliding_walls[0][0].y)/(colliding_walls[0][1].x - colliding_walls[0][0].x))
+##       
+##        x_offset, y_offset = collisionMovement(v_r, v_l, angle, theta)
+##        x = 0
+##        y = 0
+#        drawSensors()
+#        pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+#        bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
+#                                      (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
+#        line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
+##        bot_c = Point((x), (y))
     else:
-        x = x
-        y = y
+#        x = x
+#        y = y
         drawSensors()
         pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
