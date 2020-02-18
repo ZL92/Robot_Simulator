@@ -1,8 +1,7 @@
 # Robot_Simulator
 
 
-The `requirements.txt` file should list all Python libraries that your notebooks
-depend on, and they will be installed using:
+The `requirements.txt` file lists all Python libraries, and they will be installed using:
 
 ```
 pip install -r requirements.txt
