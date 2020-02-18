@@ -19,7 +19,7 @@ walls_thickness = 20
 win = pygame.display.set_mode((w_width, w_height))
 pygame.display.set_caption('Simulator')
 
-x = w_width/2
+x = 50
 y = w_height/2
 
 bot_c = Point(x,y)
@@ -360,9 +360,7 @@ while run:
     ### Redraw
     win.fill((WHITE))
     borders, borders_line = drawWalls()
-     
-    
-    
+
     #### Collision stuff ######
     next_angle, next_x, next_y = ICC_Calculation2(v_r, v_l, radius, angle, x, y)	
     center = Vector2(next_x,next_y)
