@@ -1,2 +1,4 @@
 shapely
 pygame
+numpy
+math
