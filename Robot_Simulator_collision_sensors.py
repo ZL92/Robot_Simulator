@@ -19,7 +19,7 @@ walls_thickness = 20
 win = pygame.display.set_mode((w_width, w_height))
 pygame.display.set_caption('Simulator')
 
-x = w_width/2
+x = 50
 y = w_height/2
 
 bot_c = Point(x,y)
@@ -265,8 +265,14 @@ def drawSensors():
 
             
     return()
-    
-    
+
+def drawspeeds():
+    left_wheel_text = create_font(str(round(v_l)))
+    win.blit(left_wheel_text, (x + radius * -np.cos(angle + np.pi/2),(y + radius * np.sin(angle + np.pi/2))))
+    right_wheel_text = create_font(str(round(v_r)))
+    win.blit(right_wheel_text, (x + radius * -np.cos(angle - np.pi/2), (y + radius * np.sin(angle - np.pi/2))))
+    return()
+
 ################ Walls & Sensors ####################
 margin = 20
 b1_s = Point(0 + margin, 0 + margin)
@@ -360,9 +366,7 @@ while run:
     ### Redraw
     win.fill((WHITE))
     borders, borders_line = drawWalls()
-     
-    
-    
+
     #### Collision stuff ######
     next_angle, next_x, next_y = ICC_Calculation2(v_r, v_l, radius, angle, x, y)	
     center = Vector2(next_x,next_y)
@@ -382,7 +386,8 @@ while run:
         pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
                                       (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
-        line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10)) 
+        line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
+        drawspeeds()
         bot_c = Point((x), (y))
        
         
@@ -400,6 +405,7 @@ while run:
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
                                       (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
         line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
+        drawspeeds()
         bot_c = Point((x), (y))
     else:
         x = x
@@ -409,6 +415,7 @@ while run:
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
                                       (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
         line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
+        drawspeeds()
         bot_c = Point((x), (y))
     ###########################
     # Update / Call next tick #
