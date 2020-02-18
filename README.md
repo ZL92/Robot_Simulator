@@ -1,6 +1,6 @@
 # Robot_Simulator
 
-#Installment
+
 The `requirements.txt` file should list all Python libraries that your notebooks
 depend on, and they will be installed using:
 
@@ -8,7 +8,6 @@ depend on, and they will be installed using:
 pip install -r requirements.txt
 ```
 
-#Robot control
 Control speed of motors of left and right wheel with following keyboard
 
 ```
