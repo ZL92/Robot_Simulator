@@ -12,8 +12,8 @@ from utils import *
 pygame.init()
 
 
-w_height = 800
 w_width = 800
+w_height = 800
 walls_thickness = 20
 
 win = pygame.display.set_mode((w_width, w_height))
@@ -36,6 +36,9 @@ run = True
 w_pressed = False
 s_pressed = False
 
+tst = False
+
+
 
 ################# RGB Colors #################
 
@@ -43,7 +46,10 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (13, 255, 0)
+GREEN = Color("purple")
 YELLOW = (255, 255, 0)
+SENS_RED = (255,0,0)
+BG_COLOR = Color("lightblue")
 
 ##############################################
 
@@ -248,20 +254,20 @@ def drawSensors():
 #                    pygame.draw.line(win, GREEN, (int(x), int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
 #                                          (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors))))),
 #                    )  
-                    pygame.draw.line(win, GREEN, (int(x), int(y)), (int_pt.x, int_pt.y)),
+                    pygame.draw.line(win, Color("darkgreen"), (int(x), int(y)), (int_pt.x, int_pt.y),2),
                     )  
             txt = create_font(str(round(dist,0)))
             win.blit(txt,  (int_pt.x, int_pt.y))
 
         else:
             sensors.append(
-                    pygame.draw.line(win, RED, (int(x), int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
+                    pygame.draw.line(win, SENS_RED, (int(x), int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
                                           (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors))))),
                     )
-                    
-            txt = create_font(str(round(dist,0)))
-            win.blit(txt, (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
-                                          (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors)))))
+            if not tst:
+                txt = create_font(str(round(dist,0)))
+                win.blit(txt, (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
+                                              (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors)))))
 
             
     return()
@@ -284,10 +290,10 @@ b3_e = Point(0 + margin, w_height - margin)
 b4_s = Point(0 + margin, w_height - margin)
 b4_e = Point(0 + margin, 0 + margin)
 
-start_pointP = Point(200, 200) #### DEFINE THE LEFT MOST POINT AS END POINT
-end_pointP = Point(0,0) #### DEFINE THE RIGHT MOST POINT AS START POINT
-end_pointP2 = Point(200, 200)
-start_pointP2 = Point(300,300)
+start_pointP = Point(0,2) #### DEFINE THE LEFT MOST POINT AS END POINT
+end_pointP = Point(2,2) #### DEFINE THE RIGHT MOST POINT AS START POINT
+end_pointP2 = Point(0,2)
+start_pointP2 = Point(2,2)
 
 
 # TODO: CHANGE EVERYTHING TO POINT
@@ -301,10 +307,10 @@ b4_sv = Vector2(0 + margin, w_height - margin)
 b4_ev = Vector2(0 + margin, 0 + margin)
 
 
-start_point = Vector2(200, 200) #### DEFINE THE LEFT MOST Vector2 AS END Vector2
-end_point = Vector2(0,0) #### DEFINE THE RIGHT MOST Vector2 AS START Vector2
-end_point2 = Vector2(200, 200)
-start_point2 = Vector2(300,300)
+start_point = Vector2(0, 2) #### DEFINE THE LEFT MOST Vector2 AS END Vector2
+end_point = Vector2(2,2) #### DEFINE THE RIGHT MOST Vector2 AS START Vector2
+end_point2 = Vector2(2,2)
+start_point2 = Vector2(0,2)
 
 line_top = LineString([b1_s, b1_e])
 line_right = LineString([b2_s, b2_e])
@@ -336,6 +342,7 @@ collison_walls = [
         ]
 ####################################################################
 ########### ------- MAIN LOOP ------- #############
+
 while run:
     pygame.time.delay(60)
 
@@ -343,28 +350,45 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         elif event.type == pygame.KEYDOWN:
+            print(event.key)
             if event.key == 119:        # W-Key
-                v_l += 3
+                v_l += 2
             if event.key == 115:        # S-Key
-                v_l -= 3
+                v_l -= 2
             if event.key == 111:        # O-Key
-                v_r += 3
+                v_r += 2
             if event.key == 108:        # L-Key
-                v_r -= 3
+                v_r -= 2
             if event.key == 120:        # X-Key
                 v_r = 0
                 v_l = 0
             if event.key == 116:        # T-Key
-                v_l += 3
-                v_r += 3
+                v_l += 2
+                v_r += 2
             if event.key == 103:        # G-Key
-                v_r -= 3
-                v_l -= 3
+                v_r -= 2
+                v_l -= 2
             if event.key == 98:         # B-Key
                 v_r = v_l = (v_r + v_l)/2
+            if event.key == 113:
+                if tst:
+                    SENS_RED = (255, 0, 0)
+                    tst = False
+                else:
+                    SENS_RED = BG_COLOR
+                    tst = True
+            
+        if(v_r > 0):
+            v_r = np.min([v_r, 30])
+        else:
+            v_r = np.max([v_r, -30])
+        if(v_l > 0):
+            v_l = np.min([v_l, 30])
+        else:
+            v_l = np.max([v_l, -30])
                 
     ### Redraw
-    win.fill((WHITE))
+    win.fill((BG_COLOR))
     borders, borders_line = drawWalls()
 
     #### Collision stuff ######
@@ -397,6 +421,7 @@ while run:
         else:
             theta = math.atan((colliding_walls[0][1].y - colliding_walls[0][0].y)/(colliding_walls[0][1].x - colliding_walls[0][0].x))
        
+#        print("Theta: {}".format(theta))
         x_offset, y_offset = collisionMovement(v_r, v_l, angle, theta)
         x = x + x_offset
         y = y - y_offset
@@ -407,16 +432,31 @@ while run:
         line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
         drawspeeds()
         bot_c = Point((x), (y))
+#    elif(collision_count > 1):
+##        if (colliding_walls[0][1].x - colliding_walls[0][0].x) == 0:
+##            theta = np.pi/2
+##        else:
+##            theta = math.atan((colliding_walls[0][1].y - colliding_walls[0][0].y)/(colliding_walls[0][1].x - colliding_walls[0][0].x))
+##       
+##        x_offset, y_offset = collisionMovement(v_r, v_l, angle, theta)
+##        x = 0
+##        y = 0
+#        drawSensors()
+#        pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+#        bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
+#                                      (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
+#        line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
+##        bot_c = Point((x), (y))
     else:
-        x = x
-        y = y
+#        x = x
+#        y = y
         drawSensors()
         pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
-        bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
-                                      (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
+#        bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
+#                                      (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
         line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
         drawspeeds()
-        bot_c = Point((x), (y))
+#        bot_c = Point((x), (y))
     ###########################
     # Update / Call next tick #
 
@@ -425,6 +465,7 @@ while run:
         angle = angle - 2*np.pi
     elif angle < -2*np.pi:
         angle = angle + 2*np.pi
+#    print("Collisions: {}".format(collision_count))
     pygame.display.update()
 ###################################################
 pygame.quit()
