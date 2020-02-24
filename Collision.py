@@ -172,24 +172,26 @@ def getPerpendicularPosition(point, line_start_point, line_end_point):
 
 
 def collisionDetection(currect_center, center, radius, start_point, end_point):
-
-    d = np.linalg.norm(np.cross(np.asarray(start_point)-np.asarray(end_point), np.asarray(end_point)-np.asarray(center))) / np.linalg.norm(np.asarray(start_point)-np.asarray(end_point)) #Distance from center to obstacle
-
     perpendicular_position = getPerpendicularPosition(center, start_point, end_point)
-    line = LineString([start_point, end_point]) #Check whether the perpendicular position is on the obstacle
 
+    # d = np.linalg.norm(np.cross(np.asarray(start_point)-np.asarray(end_point), np.asarray(end_point)-np.asarray(center))) / np.linalg.norm(np.asarray(start_point)-np.asarray(end_point)) #Distance from center to obstacle
+    d = np.linalg.norm(np.array(center.coords[0]) - np.array(perpendicular_position.coords[0]))
+
+    line = LineString([start_point, end_point]) #Check whether the perpendicular position is on the obstacle
+    line2 = LineString([currect_center, perpendicular_position]) # For checking whether the perpendicular position is on the obstacle.
     trajectory = LineString([currect_center, center])
 
-    if start_point == Point(600,700):
-        pygame.draw.line(win, YELLOW, np.asarray(perpendicular_position), np.asarray(currect_center))
+    if start_point == Point(550,900):
+        pygame.draw.line(win, YELLOW, np.array(perpendicular_position.coords[0]), np.array(currect_center.coords[0]))
         # print('d is {}\ncurrent_center is {}\ncenter is {} '.format(d, currect_center, center) )
+        # print('d is {}'.format(d))
 
 
-    if d <= radius and perpendicular_position.intersection(line).coords !=[]:
-        print('d is {}'.format(d))
+
+    if d <= radius and line2.intersection(line).coords !=[]:
+        print('Colliding and d is {}'.format(d))
         return True
     elif trajectory.intersection(line).coords != []: #Check backwords to avoiding clipping-through
-        print('d is {}'.format(d))
         return True
     else:
         return False
@@ -246,7 +248,7 @@ def drawWalls():
         pygame.draw.line(win, RED, line_left.bounds[0:2], line_left.bounds[2:4],2),
         pygame.draw.line(win, Color('orange'), test_line1.coords[0], test_line1.coords[1],4),
         pygame.draw.line(win, Color('purple'), test_line2.coords[0], test_line2.coords[1],4),
-        
+
         ]
 
     return borders, borders_line
@@ -264,14 +266,6 @@ def collidingMovement(vr, vl, current_center, angle, start_point, end_point):
     print('projection is {}'.format(projection))
     new_position = np.array(current_center.coords[0]) + projection
     return new_position
-
-def collisionMovement_new(v_r, v_l, angle, theta):
-    velocity = (v_r + v_l) / 2
-    # v_parallel = np.sin(angle - np.pi/2 + theta) * velocity
-    v_parallel = np.sin(np.pi/2 - angle + theta) * velocity
-    x_offset = np.sin(theta) * v_parallel
-    y_offset = np.cos(theta) * v_parallel
-    return x_offset, y_offset
 
 def collisionMovement(v_r, v_l, angle, theta):
 #    if angle < 0:
@@ -347,10 +341,10 @@ b3_e = Point(0 + margin, w_height - margin)
 b4_s = Point(0 + margin, w_height - margin)
 b4_e = Point(0 + margin, 0 + margin)
 
-start_point = Point(0,500) #### DEFINE THE LEFT MOST POINT AS END POINT
-end_point = Point(500,500) #### DEFINE THE RIGHT MOST POINT AS START POINT
-end_point2 = Point(500,500)
-start_point2 = Point(550,900)
+start_point = Point(0, 500) #### DEFINE THE LEFT MOST POINT AS END POINT
+end_point = Point(500, 500) #### DEFINE THE RIGHT MOST POINT AS START POINT
+start_point2 = Point(550, 900)
+end_point2 = Point(200, 200)
 
 line_top = LineString([b1_s, b1_e])
 line_right = LineString([b2_s, b2_e])
@@ -377,7 +371,7 @@ collison_walls = [
         [b2_s, b2_e],
         [b3_s, b3_e],
         [b4_s, b4_e],
-        [start_point,end_point],
+        [start_point, end_point],
         [start_point2, end_point2]
         ]
 ####################################################################
@@ -439,11 +433,11 @@ while run:
     absolute_velocity = (v_r + v_l)/2
     colliding_walls = []
     for i in range(len(collison_walls)):	
-        if(collisionDetection(currect_center, center,radius,collison_walls[i][1], collison_walls[i][0]) == True):
+        if(collisionDetection(currect_center, center,radius,collison_walls[i][0], collison_walls[i][1]) == True):
             collision_count +=1	
             colliding_walls.append(collison_walls[i])
-            print('colliding at wall :', collison_walls[i][0], collison_walls[i][1])
-            print('##########')
+            # print('colliding at wall :', collison_walls[i][0], collison_walls[i][1])
+            # print('##########')
 
     if(collision_count == 0):	
         angle, x, y = next_angle, next_x, next_y
