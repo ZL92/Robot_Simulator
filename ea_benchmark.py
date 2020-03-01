@@ -23,7 +23,7 @@ def InitPopulation(pop_size):
     return 10*np.random.random((pop_size,2)) - 5
 
 def TruncSelect(pop_size,best_size,eval_genes,genes):
-    indices = np.argpartition(eval_genes, -best_size)[-best_size:]
+    indices = np.argpartition(eval_genes,-best_size)[-best_size:]
     elite_genes = genes[indices]
     return elite_genes
 
@@ -34,17 +34,25 @@ def Reproduction(pop_size,elite_genes,best_size):
     parent_genes = np.resize(parent_genes, (10,2))
     return parent_genes
     
-def Crossover(parent_genes,pop_size,best_size):
-    var = np.random.randint(0,2,(pop_size - best_size ,))
-    var_zeros = np.zeros((best_size,))
-    cross_chance = np.concatenate((var_zeros,var))    
-#    np.where(cross_chance == 1, [parent_genes[]])
-#    
-#    for i in range(len(parent_genes)):
-#        if i > best_size - 1:
-#            
-#    print(cross_chance)
-    new_pop =[]
+def Crossover(parent_genes,pop_size,best_size,type_of_crossover):
+    ####type -0 for swapping x and y,-1 for addition and subtraction
+    new_pop = deepcopy(parent_genes)
+    for i in range(len(new_pop)):
+        if i >= best_size:
+            if i+1 < len(new_pop):
+                if(type_of_crossover == 0):
+                    p2y = new_pop[i+1,1]
+                    p1y = new_pop[i,1]
+                    new_pop[i,0] = new_pop[i+1,1]
+                    new_pop[i+1,0] = new_pop[i,1]
+                    new_pop[i,1] = p2y
+                    new_pop[i+1,1] = p1y
+                if(type_of_crossover == 1):
+                    p1 = new_pop[i]
+                    p2 = new_pop[i+1]
+                    new_pop[i] = (p1 + p2)/2
+                    new_pop[i] = (p1 - p2)/2
+        i = i+1
     return new_pop
 
 def Mutation(parent_genes, best_size):
@@ -63,17 +71,24 @@ def Mutation(parent_genes, best_size):
 
     return new_pop.T
 
-#np.random.seed(0)
+np.random.seed(0)
 pop_size = 10
 best_size = 2
-mutation_prob = 0.5
+mutation_prob = 0.1
 genes = InitPopulation(pop_size)
-out = Rosenbrock([genes[:,0],genes[:,1]])
-elite_genes = TruncSelect(pop_size = pop_size,best_size = best_size ,eval_genes= out,genes = genes)
-parent_genes = Reproduction(pop_size,elite_genes,best_size)
-print(parent_genes)
-Crossover(parent_genes,pop_size,best_size)
-#print(parent_genes)
-new_genes = Mutation(parent_genes, best_size)
-print(new_genes)
-print(new_genes-parent_genes)
+no_iterations = 40
+print("###### Initial Generation######")
+print(genes)
+print("###############################")
+for generation in range(no_iterations):
+    out = -Rosenbrock([genes[:,0],genes[:,1]])
+    elite_genes = TruncSelect(pop_size = pop_size,best_size = best_size ,eval_genes= out,genes = genes)
+    parent_genes = Reproduction(pop_size,elite_genes,best_size)
+    child_genes = Crossover(parent_genes,pop_size,best_size,1)
+    new_genes = Mutation(child_genes, best_size)
+    print("###### Generation " + str(generation+1)+"######")
+    print(new_genes)
+    print("#################################")
+    genes = new_genes
+#print(new_genes)
+#print(new_genes-parent_genes)
