@@ -38,26 +38,28 @@ def Reproduction(pop_size, elite_genes, best_size):
     return parent_genes
 
 
+
 def Crossover(parent_genes, pop_size, best_size, type_of_crossover):
-    ####type -0 for swapping x and y, -1 for addition and subtraction
     new_pop = deepcopy(parent_genes)
-    for i in range(len(new_pop)):
-        if crossover_prob > np.random.random():
-            if i >= best_size:
-                if i + 1 < len(new_pop):
-                    if (type_of_crossover == 0):
-                        p2y = new_pop[i + 1, 1]
-                        p1y = new_pop[i, 1]
-                        new_pop[i, 0] = new_pop[i + 1, 1]
-                        new_pop[i + 1, 0] = new_pop[i, 1]
-                        new_pop[i, 1] = p2y
-                        new_pop[i + 1, 1] = p1y
-                    if (type_of_crossover == 1):
-                        p1 = new_pop[i]
-                        p2 = new_pop[i + 1]
-                        new_pop[i] = (p1 + p2) / 2
-                        new_pop[i] = (p1 - p2) / 2
-            i = i + 1
+
+    if type_of_crossover == 0: #One-point
+        the_point = np.random.randint(0, len(parent_genes),1)
+        new_pop[the_point,1], new_pop[the_point,0] = new_pop[the_point,0], new_pop[the_point,1]
+    if type_of_crossover == 1: #Uniform with ps = 0,5
+        for i in range(len(new_pop)):
+            if np.random.rand(1) < 0.5:
+                new_pop[i, 1], new_pop[i, 0] = new_pop[i, 0], new_pop[i, 1]
+            else:
+                continue
+            i+=1
+
+    if type_of_crossover == 2: #Arithmetic
+        weighting_factor = np.random.rand(1)
+        for i in range(len(new_pop)):
+            offspring1 = new_pop[i, 0] * weighting_factor + new_pop[i, 0] * (1 - weighting_factor)
+            offspring2 = new_pop[i, 0] * (1 - weighting_factor) + new_pop[i, 0] * weighting_factor
+            new_pop[i] = [offspring1, offspring2]
+
     return new_pop
 
 
@@ -84,14 +86,14 @@ F = functs[(input('Choose Rosenbrock (0) or Rastrigin (1) - (default 0)') or '0'
 print('Function: {}'.format(F))
 
 
-#np.random.seed(0)
+np.random.seed(0)
 pop_size = 20 
 best_size = int(pop_size/10)
 mutation_prob = 0.3
-crossover_prob = 0.6
 genes = InitPopulation(pop_size)
 no_iterations = int(input('Number of iterations - (default 50)') or '50')
 
+type_of_crossover = 2 # One-point (0), Uniform (1), Arithmetic(2)
 
 print("###### Initial Generation######")
 print(genes)
@@ -120,7 +122,7 @@ for generation in range(no_iterations):
     out = -F([genes[:, 0], genes[:, 1]])
     elite_genes = TruncSelect(pop_size=pop_size, best_size=best_size, eval_genes=out, genes=genes)
     parent_genes = Reproduction(pop_size, elite_genes, best_size)
-    child_genes = Crossover(parent_genes, pop_size, best_size, 1)
+    child_genes = Crossover(parent_genes, pop_size, best_size, type_of_crossover)
     new_genes = Mutation(child_genes, best_size, pop_size)
     print("######### Generation " + str(generation + 1) + " #########")
 #    print(new_genes)
