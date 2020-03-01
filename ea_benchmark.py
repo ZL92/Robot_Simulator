@@ -42,21 +42,22 @@ def Crossover(parent_genes, pop_size, best_size, type_of_crossover):
     ####type -0 for swapping x and y, -1 for addition and subtraction
     new_pop = deepcopy(parent_genes)
     for i in range(len(new_pop)):
-        if i >= best_size:
-            if i + 1 < len(new_pop):
-                if (type_of_crossover == 0):
-                    p2y = new_pop[i + 1, 1]
-                    p1y = new_pop[i, 1]
-                    new_pop[i, 0] = new_pop[i + 1, 1]
-                    new_pop[i + 1, 0] = new_pop[i, 1]
-                    new_pop[i, 1] = p2y
-                    new_pop[i + 1, 1] = p1y
-                if (type_of_crossover == 1):
-                    p1 = new_pop[i]
-                    p2 = new_pop[i + 1]
-                    new_pop[i] = (p1 + p2) / 2
-                    new_pop[i] = (p1 - p2) / 2
-        i = i + 1
+        if crossover_prob > np.random.random():
+            if i >= best_size:
+                if i + 1 < len(new_pop):
+                    if (type_of_crossover == 0):
+                        p2y = new_pop[i + 1, 1]
+                        p1y = new_pop[i, 1]
+                        new_pop[i, 0] = new_pop[i + 1, 1]
+                        new_pop[i + 1, 0] = new_pop[i, 1]
+                        new_pop[i, 1] = p2y
+                        new_pop[i + 1, 1] = p1y
+                    if (type_of_crossover == 1):
+                        p1 = new_pop[i]
+                        p2 = new_pop[i + 1]
+                        new_pop[i] = (p1 + p2) / 2
+                        new_pop[i] = (p1 - p2) / 2
+            i = i + 1
     return new_pop
 
 
@@ -84,10 +85,10 @@ print('Function: {}'.format(F))
 
 
 #np.random.seed(0)
-pop_size = 100 #Don't change it because the unchangable parameter in function Mutation
-best_size = 2
-mutation_prob = 0.2
-crossover_prob = 0.5
+pop_size = 20 
+best_size = int(pop_size/10)
+mutation_prob = 0.3
+crossover_prob = 0.6
 genes = InitPopulation(pop_size)
 no_iterations = int(input('Number of iterations - (default 50)') or '50')
 
@@ -121,9 +122,12 @@ for generation in range(no_iterations):
     parent_genes = Reproduction(pop_size, elite_genes, best_size)
     child_genes = Crossover(parent_genes, pop_size, best_size, 1)
     new_genes = Mutation(child_genes, best_size, pop_size)
-    print("###### Generation " + str(generation + 1) + "######")
-    print(new_genes)
-    print("#################################")
+    print("######### Generation " + str(generation + 1) + " #########")
+#    print(new_genes)
+    print("<<< Current Gen. Pop. (avg.) Fitness::: ", np.average(out))
+    print("<<< Current Gen. Pop. BEST Fitness::: ", np.max(out))
+    print("<<< Current Gen. Pop. WORST Fitness::: ", np.min(out))
+    print("---------------------------------")
     genes = new_genes
     tmpPoints = ax.scatter((new_genes[:,0]), (new_genes[:,1]), s=15, c = clr)
     plt.pause(0.2)
