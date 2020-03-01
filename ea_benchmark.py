@@ -21,7 +21,7 @@ from matplotlib import cm
 ####Create Initial Population
 
 def InitPopulation(pop_size):
-    return 10 * np.random.random((pop_size, 2)) - 5
+    return 20 * np.random.random((pop_size, 2)) - 10
 
 
 def TruncSelect(pop_size, best_size, eval_genes, genes):
@@ -34,7 +34,7 @@ def Reproduction(pop_size, elite_genes, best_size):
     offspring_count = int(pop_size / len(elite_genes))
     assert type(offspring_count) == int, "WTF are u doing"
     parent_genes = (np.tile(elite_genes, (offspring_count + 1, 1)))
-    parent_genes = np.resize(parent_genes, (10, 2))
+    parent_genes = np.resize(parent_genes, (pop_size, 2))
     return parent_genes
 
 
@@ -60,14 +60,14 @@ def Crossover(parent_genes, pop_size, best_size, type_of_crossover):
     return new_pop
 
 
-def Mutation(parent_genes, best_size):
+def Mutation(parent_genes, best_size, pop_size):
     new_pop = deepcopy(parent_genes)  # Create deep copy of parentpool
     var_zeros = np.zeros((best_size))
     mut_chanceX = np.concatenate((var_zeros - 1, np.random.uniform(0, 1, (pop_size - best_size))))
     mut_chanceY = np.concatenate((var_zeros - 1, np.random.uniform(0, 1, (pop_size - best_size))))
 
-    rng_mutationX = np.random.uniform(-1, 1, 10)  # 10 random uniform numbers
-    rng_mutationY = np.random.uniform(-1, 1, 10)  # 10 random uniform numbers
+    rng_mutationX = np.random.uniform(-1, 1, pop_size)  # 10 random uniform numbers
+    rng_mutationY = np.random.uniform(-1, 1, pop_size)  # 10 random uniform numbers
 
     new_popX = np.where(mut_chanceX < mutation_prob, new_pop[:, 0], new_pop[:, 0] + rng_mutationX)
     new_popY = np.where(mut_chanceY < mutation_prob, new_pop[:, 1], new_pop[:, 1] + rng_mutationY)
@@ -83,10 +83,11 @@ F = functs[(input('Choose Rosenbrock (0) or Rastrigin (1) - (default 0)') or '0'
 print('Function: {}'.format(F))
 
 
-np.random.seed(0)
-pop_size = 10 #Don't change it because the unchangable parameter in function Mutation
+#np.random.seed(0)
+pop_size = 100 #Don't change it because the unchangable parameter in function Mutation
 best_size = 2
-mutation_prob = 0.1
+mutation_prob = 0.2
+crossover_prob = 0.5
 genes = InitPopulation(pop_size)
 no_iterations = int(input('Number of iterations - (default 50)') or '50')
 
@@ -119,7 +120,7 @@ for generation in range(no_iterations):
     elite_genes = TruncSelect(pop_size=pop_size, best_size=best_size, eval_genes=out, genes=genes)
     parent_genes = Reproduction(pop_size, elite_genes, best_size)
     child_genes = Crossover(parent_genes, pop_size, best_size, 1)
-    new_genes = Mutation(child_genes, best_size)
+    new_genes = Mutation(child_genes, best_size, pop_size)
     print("###### Generation " + str(generation + 1) + "######")
     print(new_genes)
     print("#################################")
