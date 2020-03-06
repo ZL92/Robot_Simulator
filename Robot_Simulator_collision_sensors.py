@@ -37,7 +37,10 @@ w_pressed = False
 s_pressed = False
 
 tst = False
-
+no_paricles = 100
+radius_dust = 2
+particles_cleared = 0
+max_iters_pergen = 100
 
 
 ################# RGB Colors #################
@@ -56,6 +59,41 @@ BG_COLOR = Color("lightblue")
 
 
 ################# Functions ##################
+
+def fitness_function(particles_cleared,sensor_distances,collision_count,timestep,v_l,v_r,fitness):
+	dist_threshold = 10
+	terminate = False
+	np_distances = np.asarray(sensor_distances)
+	np_distances = np.where((np_distances > 10) & (np_distances < 40),1,0)
+	closer_wall_factor = np.sum(np_distances)/12
+	fitness += (4 * particles_cleared  + 2* closer_wall_factor - 4 * collision_count) * ((abs(v_l) + abs(v_r))/2)
+	if(timestep%30 == 0):
+		prev_v_l = v_l
+		prev_v_r = v_r
+		prev_fitness = fitness
+		if(prev_fitness <0 and fitness <0):
+			terminate = True
+		if(prev_v_l == 0 and prev_v_r == 0 and v_l ==0 and v_r == 0):
+			terminate = True
+	return fitness,terminate
+
+	
+
+def CreateDust(no_paricles,width,height):
+	random_coord = np.random.rand(no_paricles,2)
+	random_coord[ : ,0] = random_coord[ : ,0] * width
+	random_coord[ : ,1] = random_coord[ : ,1] * height
+	return random_coord
+
+def CalculateDistance(dust_positions,center_bot):
+	return  np.array([distance(dust_position,center_bot) for dust_position in dust_positions])
+
+def Clear_Dust(dust_positions,radius_dust,radius_circle,dust_distances):
+	initial_dust_count = len(dust_positions)
+	colliding_dust_indices = np.argwhere(dust_distances <= radius_dust + radius_circle)
+	dust_positions = np.delete(dust_positions,colliding_dust_indices,0)
+	after_dust_count = len(dust_positions)
+	return dust_positions,initial_dust_count - after_dust_count
 
 def create_font(t,s=15,c=(0,0,0), b=False,i=False):
     font = pygame.font.SysFont("Arial", s, bold=b, italic=i)
@@ -236,6 +274,7 @@ def drawSensors():
     
     sensors_lines = []    
     sensors = []
+    distances = [None] * 12
 
     for i in range(nb_sensors):
         sensors_lines.append(LineString(
@@ -245,6 +284,7 @@ def drawSensors():
                             )
     for i in range(len(sensors_lines)):
         det, dist, int_pt = sensing(sensors_lines[i], angle)      # returns 3 values ('detection (bool)', 'distance (value)', 'Intersection point(Point)')
+        distances[i] = dist
 #        print("Distance for sensor {}, = {}".format(i, dist))
         
         #### TODO TEXT HERE
@@ -270,7 +310,7 @@ def drawSensors():
                                               (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors)))))
 
             
-    return()
+    return distances
 
 def drawspeeds():
     left_wheel_text = create_font(str(round(v_l)))
@@ -342,7 +382,9 @@ collison_walls = [
         ]
 ####################################################################
 ########### ------- MAIN LOOP ------- #############
-
+dust_positions = CreateDust(no_paricles,w_width - walls_thickness,w_height - walls_thickness)
+timestep = 0
+fitness = 0
 while run:
     pygame.time.delay(60)
 
@@ -350,7 +392,6 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         elif event.type == pygame.KEYDOWN:
-            print(event.key)
             if event.key == 119:        # W-Key
                 v_l += 2
             if event.key == 115:        # S-Key
@@ -391,6 +432,13 @@ while run:
     win.fill((BG_COLOR))
     borders, borders_line = drawWalls()
 
+    #### Draw Dust
+    distance_dust = CalculateDistance(dust_positions,(x,y))
+    dust_positions,count_cleared = Clear_Dust(dust_positions,radius,radius_dust,distance_dust)
+    particles_cleared += count_cleared
+    for i in range(len(dust_positions)):
+    		pygame.draw.circle(win,BLACK,(int(dust_positions[i,0]),int(dust_positions[i,1])),radius_dust)
+
     #### Collision stuff ######
     next_angle, next_x, next_y = ICC_Calculation2(v_r, v_l, radius, angle, x, y)	
     center = Vector2(next_x,next_y)
@@ -406,7 +454,7 @@ while run:
 
     if(collision_count == 0):	
         angle,x,y = next_angle,next_x,next_y	
-        drawSensors()
+        distances = drawSensors()
         pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
                                       (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
@@ -425,7 +473,7 @@ while run:
         x_offset, y_offset = collisionMovement(v_r, v_l, angle, theta)
         x = x + x_offset
         y = y - y_offset
-        drawSensors()
+        distances = drawSensors()
         pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
         bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
                                       (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
@@ -450,7 +498,7 @@ while run:
     else:
 #        x = x
 #        y = y
-        drawSensors()
+        distances = drawSensors()
         pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
 #        bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
 #                                      (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
@@ -466,6 +514,13 @@ while run:
     elif angle < -2*np.pi:
         angle = angle + 2*np.pi
 #    print("Collisions: {}".format(collision_count))
+    timestep = timestep+1
     pygame.display.update()
+    fitness,terminate = fitness_function(count_cleared,distances,collision_count,timestep,v_l,v_r,fitness)
+    print(fitness)
+    if(timestep == max_iters_pergen):
+    	pygame.quit()
+    	run = False
 ###################################################
+print(particles_cleared)
 pygame.quit()
