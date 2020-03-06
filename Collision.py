@@ -19,7 +19,7 @@ walls_thickness = 20
 win = pygame.display.set_mode((w_width, w_height))
 pygame.display.set_caption('Simulator')
 
-x = 50
+x = w_height/2
 y = w_height/2
 
 bot_c = Point(x,y)
@@ -65,7 +65,6 @@ def create_font(t,s=15,c=(0,0,0), b=False,i=False):
 
 
 def ICC_Calculation2(v_r, v_l, radius, angle, x, y):
-#    global v_l, v_r, radius, angle, x, y
     if v_l != v_r:
         icc_distance = (radius)*(v_l + v_r)/(v_r - v_l)         
         omega = (v_r - v_l)/(2*radius)
@@ -97,69 +96,7 @@ def ICC_Calculation2(v_r, v_l, radius, angle, x, y):
     return angle, x, y
 
 
-def sensing(sensor, angle):
-    detect = False
-    dist = sens_l - radius
-    inter_pt = None
-    
-    for border in borders_line:
-        test1 = line_top.intersection(sensor)
-        test2 = line_right.intersection(sensor)
-        test3 = line_bottom.intersection(sensor)
-        test4 = line_left.intersection(sensor)
-        test5 = test_line1.intersection(sensor)
-        test6 = test_line2.intersection(sensor)
-        if not (test1.is_empty):
-#            print("Sensor {} intersects with {} at: {}".format(sensor, border, test1))
-            detect = True
-            inter_pt = test1
-            dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
-        if not (test2.is_empty):
-#            print("Sensor {} intersects with {} at: {}".format(sensor, border, test1))
-            detect = True
-            inter_pt = test2
-            dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
-        if not (test3.is_empty):
-#            print("Sensor {} intersects with {} at: {}".format(sensor, border, test1))
-            detect = True
-            inter_pt = test3
-            dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
-        if not (test4.is_empty):
-#            print("Sensor {} intersects with {} at: {}".format(sensor, border, test1))
-            detect = True
-            inter_pt = test4
-            dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
-        if not (test5.is_empty):
-#            print("Sensor {} intersects with {} at: {}".format(sensor, border, test1))
-            detect = True
-            inter_pt = test5
-            dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
-        if not (test6.is_empty):
-#            print("Sensor {} intersects with {} at: {}".format(sensor, border, test1))
-            detect = True
-            inter_pt = test6
-            dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
 
-    return detect, dist, inter_pt
-        
-
-# def Collision(center,radius,start_point,end_point):
-#     along_vector = end_point - start_point
-#     a = along_vector.dot(along_vector)
-#     b =  2 * along_vector.dot(start_point - center)
-#     c = start_point.dot(start_point) + center.dot(center) - 2 * start_point.dot(center) - radius**2
-#     disc = b**2 - 4*a*c
-#     if(disc< 0 ):
-#         #print('Line missing the circle')
-#         return False
-#     sqrt_disc = math.sqrt(disc)
-#     t1 = (-b + sqrt_disc) / (2 * a)
-#     t2 = (-b - sqrt_disc) / (2 * a)
-#     if not (0 <= t1 <= 1 or 0 <= t2 <= 1):
-#         #print('line would hit the circle if extended')
-#         return False
-#     t = max(0, min(1, - b / (2 * a)))
-    return True	
 
 def getPerpendicularPosition(point, line_start_point, line_end_point):
     x = np.array(point.coords[0])
@@ -181,15 +118,13 @@ def collisionDetection(currect_center, center, radius, start_point, end_point):
     line2 = LineString([currect_center, perpendicular_position]) # For checking whether the perpendicular position is on the obstacle.
     trajectory = LineString([currect_center, center])
 
-    if start_point == Point(550,900):
-        pygame.draw.line(win, YELLOW, np.array(perpendicular_position.coords[0]), np.array(currect_center.coords[0]))
+    # if start_point == Point(550,900):
+        # pygame.draw.line(win, YELLOW, np.array(perpendicular_position.coords[0]), np.array(currect_center.coords[0]))
         # print('d is {}\ncurrent_center is {}\ncenter is {} '.format(d, currect_center, center) )
         # print('d is {}'.format(d))
 
-
-
     if d <= radius and line2.intersection(line).coords !=[]:
-        print('Colliding and d is {}'.format(d))
+        # print('Colliding and d is {}'.format(d))
         return True
     elif trajectory.intersection(line).coords != []: #Check backwords to avoiding clipping-through
         return True
@@ -200,34 +135,6 @@ def collisionDetection(currect_center, center, radius, start_point, end_point):
 def distance(p1,p2):	
     return math.sqrt( ((p1[0]-p2[0])**2)+((p1[1]-p2[1])**2) )	
 
-
-def Slope(point1, point2,point3,point4):	
-    x1,y1 = point1
-    x2,y2 = point2
-    dy = y2 - y1
-    dx = x2 -x1
-    x3,y3 = point3
-    x4,y4 = point4
-    dy2 = y4 - y3
-    dx2 = x4 -x3
-    if(dx == 0 and dx2 == 0):
-        return 0
-    elif(dx == 0):
-        slope2 = dy2/dx2
-        if dy>=0:
-            return np.pi/2 - math.atan(slope2)
-        else:
-            return -np.pi/2 - math.atan(slope2)
-    elif(dx2 == 0):
-        slope1 = dy/dx
-        if dy2>=0:
-            return np.pi/2 - math.atan(slope1)
-        else:
-            return -np.pi/2 - math.atan(slope1)
-    slope1 = dy/dx
-    slope2 = dy2/dx2
-    tan_angle = (slope1-slope2)/(1+slope1*slope2)
-    return math.atan(tan_angle)
     
 
 def drawWalls():
@@ -246,12 +153,19 @@ def drawWalls():
         pygame.draw.line(win, RED, line_right.bounds[0:2], line_right.bounds[2:4],2),
         pygame.draw.line(win, RED, line_bottom.bounds[0:2], line_bottom.bounds[2:4],2),
         pygame.draw.line(win, RED, line_left.bounds[0:2], line_left.bounds[2:4],2),
-        pygame.draw.line(win, Color('orange'), test_line1.coords[0], test_line1.coords[1],4),
-        pygame.draw.line(win, Color('purple'), test_line2.coords[0], test_line2.coords[1],4),
+        # pygame.draw.line(win, Color('orange'), test_line1.coords[0], test_line1.coords[1],4),
+        # pygame.draw.line(win, Color('purple'), test_line2.coords[0], test_line2.coords[1],4),
 
         ]
 
     return borders, borders_line
+
+def drawRoom(collision_room):
+    for i in range(len(collision_room)):
+        pygame.draw.line(win, RED, (int (collision_room[i][0].x), int (collision_room[i][0].y)),
+                                    (int (collision_room[i][1].x), int (collision_room[i][1].y)), 2)
+
+
 
 def collidingMovement(vr, vl, current_center, angle, start_point, end_point):
     velocity = (v_r + v_l) / 2
@@ -263,48 +177,49 @@ def collidingMovement(vr, vl, current_center, angle, start_point, end_point):
 
     vector_obstacle_het = vector_obstacle / np.linalg.norm(vector_obstacle, 2)
     projection = np.dot(vector_trajectory, vector_obstacle) / np.linalg.norm(vector_obstacle) * vector_obstacle_het
-    print('projection is {}'.format(projection))
+    # print('projection is {}'.format(projection))
     new_position = np.array(current_center.coords[0]) + projection
     return new_position
 
-def collisionMovement(v_r, v_l, angle, theta):
-#    if angle < 0:
-#        angle += 2 * np.pi
-#    if angle > np.pi/2 :
-#        angle = np.pi - angle
-    velocity = (v_r + v_l)/2
-    new_x = np.cos(angle + np.pi)*np.cos(theta)*velocity
-    new_y = np.sin(angle + np.pi)*np.sin(theta)*velocity
-#   v_x = velocity * -np.cos(angle)
-#   v_y = velocity * np.sin(angle)
-    
-#   v_wall = v_x * np.sin(angle) * np.cos(theta) + v_y * -np.cos(angle) * np.sin(theta)
-#    v_nall = 0
-    return new_x, new_y
-#    return (v_wall * np.cos(theta)), (v_wall * np.sin(theta))
+
+def sensing(sensor, collision_walls, collision_room):
+
+    detect = False
+    dist = sens_l - radius
+    inter_pt = None
+    collision_sensing = collision_walls + collision_room
+
+    for n in range(len(collision_sensing)):
+        test = LineString([(int(collision_sensing[n][0].x), int(collision_sensing[n][0].y)),
+                           (int(collision_sensing[n][1].x), int(collision_sensing[n][1].y))]).intersection(sensor)
+        if not (test.is_empty):
+            detect = True
+            inter_pt = test
+            dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
+
+    return detect, dist, inter_pt
 
 def drawSensors():
     
     sensors_lines = []    
     sensors = []
 
+    #Initilize sensors_lines
     for i in range(nb_sensors):
         sensors_lines.append(LineString(
                                         [bot_c, (bot_c.x + sens_l * -np.cos(angle + np.radians((i * 360/nb_sensors))),
                                                  (bot_c.y + sens_l * np.sin(angle + np.radians((i * 360/nb_sensors)))))]
                                         )
                             )
+    #Detection of each sensors_lines
     for i in range(len(sensors_lines)):
-        det, dist, int_pt = sensing(sensors_lines[i], angle)      # returns 3 values ('detection (bool)', 'distance (value)', 'Intersection point(Point)')
+        det, dist, int_pt = sensing(sensors_lines[i], collision_walls, collision_room)
 #        print("Distance for sensor {}, = {}".format(i, dist))
         
         #### TODO TEXT HERE
         ###
         if det:
             sensors.append(
-#                    pygame.draw.line(win, GREEN, (int(x), int(y)), (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
-#                                          (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors))))),
-#                    )  
                     pygame.draw.line(win, Color("darkgreen"), (int(x), int(y)), (int_pt.x, int_pt.y),2),
                     )  
             txt = create_font(str(round(dist,0)))
@@ -320,7 +235,6 @@ def drawSensors():
                 win.blit(txt, (x + sens_l * -np.cos(angle + np.radians(i * 360/nb_sensors)),
                                               (y + sens_l * np.sin(angle + np.radians(i * 360/nb_sensors)))))
 
-            
     return()
 
 def drawspeeds():
@@ -329,6 +243,23 @@ def drawspeeds():
     right_wheel_text = create_font(str(round(v_r)))
     win.blit(right_wheel_text, (x + radius * -np.cos(angle - np.pi/2), (y + radius * np.sin(angle - np.pi/2))))
     return()
+
+def initilize_room(experiment_room):
+    collision_room = [[0 for j in range(2)] for i in range(len(experiment_room.coords))]
+    idx = 0
+    for coord_x, coord_y in experiment_room.coords:
+        # print(x, y)
+        # print(idx)
+        if idx == 0:
+            collision_room[idx][0] = Point(coord_x, coord_y)
+            collision_room[len(experiment_room.coords) - 1][1] = Point(coord_x, coord_y)
+        elif 0 < idx <= len(experiment_room.coords) - 1:
+            collision_room[idx - 1][1] = Point(coord_x, coord_y)
+            collision_room[idx][0] = Point(coord_x, coord_y)
+        else:
+            pass
+        idx += 1
+    return collision_room
 
 ################ Walls & Sensors ####################
 margin = 20
@@ -351,29 +282,39 @@ line_right = LineString([b2_s, b2_e])
 line_bottom = LineString([b3_s, b3_e])
 line_left = LineString([b4_s, b4_e])
 
-test_line1 = LineString([start_point, end_point])
-test_line2 = LineString([start_point2, end_point2])
+# test_line1 = LineString([start_point, end_point])
+# test_line2 = LineString([start_point2, end_point2])
 
 
-############### INITIALIZATION ####################
+room1 = LineString([Point(200, 200), Point(200, w_width-200), Point(w_height-200, w_width-200), Point(w_height-200, 200)])
+room2 = LineString([Point(100, 100), Point(400, 100), Point(w_height-100, 700), Point(300, 500)])
+rooms = {'1':room1, "2": room2}
 
-borders, borders_line = drawWalls()
-drawSensors()
-bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
-                                          (bot_c.y + radius * np.sin(angle)))])
-###################################################
+# ############## INITIALIZATION ####################
+#
+# borders, borders_line = drawWalls()
+# drawSensors()
+# bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
+#                                           (bot_c.y + radius * np.sin(angle)))])
+# ##################################################
             
             
-    
-################# Define collison lines here ##########################
-collison_walls = [
+
+################# Define collision lines here ##########################
+collision_walls = [
         [b1_s, b1_e],
         [b2_s, b2_e],
         [b3_s, b3_e],
         [b4_s, b4_e],
-        [start_point, end_point],
-        [start_point2, end_point2]
+        # [start_point, end_point],
+        # [start_point2, end_point2]
         ]
+# experiment_room = rooms[(input('Choose room1 (1) or room2 (2) -(default 1): \n>>') or '1')]
+experiment_room = rooms['1']
+collision_room = initilize_room(experiment_room)
+
+
+
 ####################################################################
 ########### ------- MAIN LOOP ------- #############
 
@@ -423,6 +364,7 @@ while run:
     ### Redraw
     win.fill((BG_COLOR))
     borders, borders_line = drawWalls()
+    drawRoom(collision_room)
 
     #### Collision stuff ######
     currect_center = Point(x, y)
@@ -432,12 +374,16 @@ while run:
     collision_count = 0
     absolute_velocity = (v_r + v_l)/2
     colliding_walls = []
-    for i in range(len(collison_walls)):	
-        if(collisionDetection(currect_center, center,radius,collison_walls[i][0], collison_walls[i][1]) == True):
+    for i in range(len(collision_walls)):
+        if(collisionDetection(currect_center, center, radius, collision_walls[i][0], collision_walls[i][1]) == True):
             collision_count +=1	
-            colliding_walls.append(collison_walls[i])
-            # print('colliding at wall :', collison_walls[i][0], collison_walls[i][1])
+            colliding_walls.append(collision_walls[i])
+            # print('colliding at wall :', collision_walls[i][0], collision_walls[i][1])
             # print('##########')
+    for i in range(len(collision_room)):
+        if(collisionDetection(currect_center, center, radius, collision_room[i][0], collision_room[i][1]) == True):
+            collision_count +=1
+            colliding_walls.append(collision_room[i])
 
     if(collision_count == 0):	
         angle, x, y = next_angle, next_x, next_y
@@ -461,44 +407,7 @@ while run:
                                 int(radius / 10))
         drawspeeds()
         bot_c = Point((x), (y))
-        
-    # elif(collision_count == 1):
-    #     if (colliding_walls[0][1].x - colliding_walls[0][0].x) == 0:
-    #         if (colliding_walls[0][1].y > colliding_walls[0][0].y):
-    #             theta = -np.pi / 2
-    #         else:
-    #             theta = np.pi / 2
-    #     else:
-    #         theta = math.atan((colliding_walls[0][1].y - colliding_walls[0][0].y)/(colliding_walls[0][1].x - colliding_walls[0][0].x))
-    #
-    #     print("Theta: {}".format(np.degrees(theta)))
-    #     x_offset, y_offset = collisionMovement_new(v_r, v_l, angle, theta)
-    #     x = x + x_offset
-    #     y = y - y_offset
-    #     drawSensors()
-    #     pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
-    #     bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
-    #                                   (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
-    #     line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
-    #     drawspeeds()
-    #     bot_c = Point((x), (y))
 
-
-#    elif(collision_count > 1):
-##        if (colliding_walls[0][1].x - colliding_walls[0][0].x) == 0:
-##            theta = np.pi/2
-##        else:
-##            theta = math.atan((colliding_walls[0][1].y - colliding_walls[0][0].y)/(colliding_walls[0][1].x - colliding_walls[0][0].x))
-##       
-##        x_offset, y_offset = collisionMovement(v_r, v_l, angle, theta)
-##        x = 0
-##        y = 0
-#        drawSensors()
-#        pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
-#        bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
-#                                      (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
-#        line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
-##        bot_c = Point((x), (y))
     else:
 #        x = x
 #        y = y
