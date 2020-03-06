@@ -12,11 +12,11 @@ import math
 import numpy as np
 from shapely.geometry import *
 from utils import *
-from NeuralNetwork import NeuralNetwork
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import time
+from pygame.locals import *
 #from sympy import * #Point, intersection
 #from geometer.point import *
 #from geometer.shapes import *
@@ -56,7 +56,7 @@ max_iters_pergen = 100
 
 ################## Numbers ###################
 
-n_gen = 10          
+n_gen = 1         
 n_pop = 10
 
 ##############################################
@@ -428,16 +428,32 @@ collison_walls = [
 dust_positions = CreateDust(no_paricles,w_width - walls_thickness,w_height - walls_thickness)
 timestep = 0
 fitness = 0
-        
-w1, w2, b1, b2 = initWeights()
 
+w1_pop = np.random.randn(n_pop, 6, 12)
+w2_pop = np.random.randn(n_pop, 2, 6)
+b1_pop = np.random.randn(n_pop,1)
+b2_pop = np.random.randn(n_pop,1)
+
+fit_pop = np.empty((0,1))
+
+#print("Weights: ", weights)
+#print("weights0", weights[0])
+print(fit_pop)
 while run:
     for gen in range(n_gen):
         print("Generation: ", gen)
         for pop in range(n_pop):
+            x, y = (w_width/2,w_height/2)
+            w1, w2, b1, b2 = w1_pop[pop], w2_pop[pop], b1_pop[pop], b2_pop[pop]
+            pygame.init()
             print("Population: ", pop)
             for t in range(max_iters_pergen):
-                pygame.time.delay(60)                  
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        exit()
+                pygame.time.delay(60)   
+                
                 ##### 
                 t_v_r, t_v_l = feedForward(np.asarray(distances), w1, w2, b1, b2)
                 
@@ -522,11 +538,17 @@ while run:
                 timestep = timestep+1
                 fitness,terminate = fitness_function(count_cleared,distances,collision_count,timestep,v_l,v_r,fitness)
             #    print(fitness)
-                if(timestep == max_iters_pergen):
-                    dust_positions = CreateDust(no_paricles,w_width - walls_thickness,w_height - walls_thickness)
+                if(terminate):
+                    break
                 pygame.display.update()
+            print(fitness)
+            dust_positions = CreateDust(no_paricles,w_width - walls_thickness,w_height - walls_thickness)
+            fit_pop = np.append(fit_pop, fitness)
+            fitness = 0
+    run = False
 
 run = False        
+print("Fitpop", fit_pop)
 ###################################################
 print("Cleared particles: {}".format(particles_cleared))
 pygame.quit()
