@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Mar  6 17:27:13 2020
+
+@author: ammar
+"""
+
 import pygame
 from pygame import Color
 from pygame.math import Vector2
@@ -47,7 +54,12 @@ radius_dust = 2
 particles_cleared = 0
 max_iters_pergen = 100
 
+################## Numbers ###################
 
+n_gen = 10          
+n_pop = 10
+
+##############################################
 ################# RGB Colors #################
 
 BLACK = (0, 0, 0)
@@ -104,6 +116,12 @@ def create_font(t,s=15,c=(0,0,0), b=False,i=False):
     font = pygame.font.SysFont("Arial", s, bold=b, italic=i)
     text = font.render(t, True, c)
     return text
+
+def createWorld():
+    return
+
+def createBot():
+    return
 #dist_text = create_font(tt)
 
 
@@ -342,6 +360,8 @@ def feedForward(x, weight_l1, weight_l2, bias, bias2):
     return output
 #####################################################
 
+
+
 ################ Walls & Sensors ####################
 margin = 20
 b1_s = Point(0 + margin, 0 + margin)
@@ -387,7 +407,7 @@ test_line2 = LineString([start_pointP2, end_pointP2])
 ################# INITIALIZATION ##################
 
 borders, borders_line = drawWalls()
-drawSensors()
+distances = drawSensors()
 bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
                                           (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))
 ###################################################
@@ -408,120 +428,105 @@ collison_walls = [
 dust_positions = CreateDust(no_paricles,w_width - walls_thickness,w_height - walls_thickness)
 timestep = 0
 fitness = 0
-while run:
-    pygame.time.delay(60)
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == 119:        # W-Key
-                v_l += 2
-            if event.key == 115:        # S-Key
-                v_l -= 2
-            if event.key == 111:        # O-Key
-                v_r += 2
-            if event.key == 108:        # L-Key
-                v_r -= 2
-            if event.key == 120:        # X-Key
-                v_r = 0
-                v_l = 0
-            if event.key == 116:        # T-Key
-                v_l += 2
-                v_r += 2
-            if event.key == 103:        # G-Key
-                v_r -= 2
-                v_l -= 2
-            if event.key == 98:         # B-Key
-                v_r = v_l = (v_r + v_l)/2
-            if event.key == 113:
-                if tst:
-                    SENS_RED = (255, 0, 0)
-                    tst = False
-                else:
-                    SENS_RED = BG_COLOR
-                    tst = True
-            
-        if(v_r > 0):
-            v_r = np.min([v_r, 30])
-        else:
-            v_r = np.max([v_r, -30])
-        if(v_l > 0):
-            v_l = np.min([v_l, 30])
-        else:
-            v_l = np.max([v_l, -30])
-                
-    ### Redraw
-    win.fill((BG_COLOR))
-    borders, borders_line = drawWalls()
-
-    #### Draw Dust
-    distance_dust = CalculateDistance(dust_positions,(x,y))
-    dust_positions,count_cleared = Clear_Dust(dust_positions,radius,radius_dust,distance_dust)
-    particles_cleared += count_cleared
-    for i in range(len(dust_positions)):
-    		pygame.draw.circle(win,BLACK,(int(dust_positions[i,0]),int(dust_positions[i,1])),radius_dust)
-
-    #### Collision stuff ######
-    next_angle, next_x, next_y = ICC_Calculation2(v_r, v_l, radius, angle, x, y)	
-    center = Vector2(next_x,next_y)
-    end_line = Vector2(next_x + radius * -np.cos(next_angle),y + radius * np.sin(next_angle))	
-    collision_count = 0	
-    absolute_velocity = (v_r + v_l)/2	
-    colliding_walls = []	
-    for i in range(len(collison_walls)):	
-        if(Collision(center,radius,collison_walls[i][0],collison_walls[i][1]) == True):	
-            collision_count +=1	
-            colliding_walls.append(collison_walls[i])
-#            print(collison_walls[i][0])	
-
-    if(collision_count == 0):	
-        angle,x,y = next_angle,next_x,next_y	
-        distances = drawSensors()
-        pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
-        bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
-                                      (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
-        line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
-        drawspeeds()
-        bot_c = Point((x), (y))
-       
         
-    elif(collision_count == 1):
-        if (colliding_walls[0][1].x - colliding_walls[0][0].x) == 0:
-            theta = np.pi/2
-        else:
-            theta = math.atan((colliding_walls[0][1].y - colliding_walls[0][0].y)/(colliding_walls[0][1].x - colliding_walls[0][0].x))
-       
-#        print("Theta: {}".format(theta))
-        x_offset, y_offset = collisionMovement(v_r, v_l, angle, theta)
-        x = x + x_offset
-        y = y - y_offset
-        distances = drawSensors()
-        pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
-        bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
-                                      (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
-        line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
-        drawspeeds()
-        bot_c = Point((x), (y))
-    else:
-        distances = drawSensors()
-        pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
-        line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
-        drawspeeds()
-    ###########################
-    # Update / Call next tick #
+w1, w2, b1, b2 = initWeights()
 
-    if angle > 2*np.pi : 
-        angle = angle - 2*np.pi
-    elif angle < -2*np.pi:
-        angle = angle + 2*np.pi
-    timestep = timestep+1
-    pygame.display.update()
-    fitness,terminate = fitness_function(count_cleared,distances,collision_count,timestep,v_l,v_r,fitness)
-    print(fitness)
-    if(timestep == max_iters_pergen):
-    	pygame.quit()
-    	run = False
+while run:
+    for gen in range(n_gen):
+        print("Generation: ", gen)
+        for pop in range(n_pop):
+            print("Population: ", pop)
+            for t in range(max_iters_pergen):
+                pygame.time.delay(60)                  
+                ##### 
+                t_v_r, t_v_l = feedForward(np.asarray(distances), w1, w2, b1, b2)
+                
+                v_r += t_v_r
+                v_l += t_v_l
+                
+                if(v_r > 0):
+                    v_r = np.min([v_r, 30])
+                else:
+                    v_r = np.max([v_r, -30])
+                if(v_l > 0):
+                    v_l = np.min([v_l, 30])
+                else:
+                    v_l = np.max([v_l, -30])
+                            
+                ### Redraw
+                win.fill((BG_COLOR))
+                borders, borders_line = drawWalls()
+            
+                #### Draw Dust
+                distance_dust = CalculateDistance(dust_positions,(x,y))
+                dust_positions,count_cleared = Clear_Dust(dust_positions,radius,radius_dust,distance_dust)
+                particles_cleared += count_cleared
+                for i in range(len(dust_positions)):
+                		pygame.draw.circle(win,BLACK,(int(dust_positions[i,0]),int(dust_positions[i,1])),radius_dust)
+            
+                #### Collision stuff ######
+                
+                
+                
+                next_angle, next_x, next_y = ICC_Calculation2(v_r, v_l, radius, angle, x, y)	
+                
+                
+                
+                center = Vector2(next_x,next_y)
+                end_line = Vector2(next_x + radius * -np.cos(next_angle),y + radius * np.sin(next_angle))	
+                collision_count = 0	
+                absolute_velocity = (v_r + v_l)/2	
+                colliding_walls = []	
+                for i in range(len(collison_walls)):	
+                    if(Collision(center,radius,collison_walls[i][0],collison_walls[i][1]) == True):	
+                        collision_count +=1	
+                        colliding_walls.append(collison_walls[i])            
+                if(collision_count == 0):	
+                    angle,x,y = next_angle,next_x,next_y	
+                    distances = drawSensors()
+                    pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+                    bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
+                                                  (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
+                    line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
+                    drawspeeds()
+                    bot_c = Point((x), (y))
+                elif(collision_count == 1):
+                    if (colliding_walls[0][1].x - colliding_walls[0][0].x) == 0:
+                        theta = np.pi/2
+                    else:
+                        theta = math.atan((colliding_walls[0][1].y - colliding_walls[0][0].y)/(colliding_walls[0][1].x - colliding_walls[0][0].x))
+                   
+            #        print("Theta: {}".format(theta))
+                    x_offset, y_offset = collisionMovement(v_r, v_l, angle, theta)
+                    x = x + x_offset
+                    y = y - y_offset
+                    distances = drawSensors()
+                    pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+                    bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
+                                                  (bot_c.y + radius * np.sin(angle)))]) #, int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
+                    line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
+                    drawspeeds()
+                    bot_c = Point((x), (y))
+                else:
+                    distances = drawSensors()
+                    pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+                    line = pygame.draw.line(win, YELLOW, (x, y), (x + radius * -np.cos(angle),(y + radius * np.sin(angle))), int(radius/10))
+                    drawspeeds()
+                ###########################
+                # Update / Call next tick #
+            
+                if angle > 2*np.pi : 
+                    angle = angle - 2*np.pi
+                elif angle < -2*np.pi:
+                    angle = angle + 2*np.pi
+                timestep = timestep+1
+                fitness,terminate = fitness_function(count_cleared,distances,collision_count,timestep,v_l,v_r,fitness)
+            #    print(fitness)
+                if(timestep == max_iters_pergen):
+                    dust_positions = CreateDust(no_paricles,w_width - walls_thickness,w_height - walls_thickness)
+                pygame.display.update()
+
+run = False        
 ###################################################
-print(particles_cleared)
+print("Cleared particles: {}".format(particles_cleared))
 pygame.quit()

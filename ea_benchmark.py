@@ -87,7 +87,7 @@ print('Function: {}'.format(F))
 
 
 np.random.seed(0)
-pop_size = 20 
+pop_size = 200 
 best_size = int(pop_size/10)
 mutation_prob = 0.3
 genes = InitPopulation(pop_size)
@@ -126,9 +126,9 @@ for generation in range(no_iterations):
     new_genes = Mutation(child_genes, best_size, pop_size)
     print("######### Generation " + str(generation + 1) + " #########")
 #    print(new_genes)
-    print("<<< Current Gen. Pop. (avg.) Fitness::: ", np.average(out))
-    print("<<< Current Gen. Pop. BEST Fitness::: ", np.max(out))
-    print("<<< Current Gen. Pop. WORST Fitness::: ", np.min(out))
+    print("<<< Current Gen. Pop. AVG Fitness::: \t", np.round(np.average(out),2))
+    print("<<< Current Gen. Pop. BEST Fitness::: \t", np.round(np.abs(np.max(out)),2))
+    print("<<< Current Gen. Pop. WORST Fitness::: \t", np.round(np.min(out),2))
     print("---------------------------------")
     genes = new_genes
     tmpPoints = ax.scatter((new_genes[:,0]), (new_genes[:,1]), s=15, c = clr)

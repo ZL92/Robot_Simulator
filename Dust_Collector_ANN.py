@@ -21,6 +21,8 @@ from pygame.locals import *
 #from geometer.point import *
 #from geometer.shapes import *
 
+from copy import copy, deepcopy
+
 pygame.init()
 
 
@@ -62,6 +64,9 @@ prev_fitness = 0
 n_gen = 30         
 n_pop = 10
 
+########### EA ##################
+keep_n = 3
+#################################
 ##############################################
 ################# RGB Colors #################
 
@@ -383,37 +388,202 @@ def Selection(w1_pop,b1_pop,w2_pop,b2_pop,fit_pop,best_size):
 	b2_pop_elite = b2_pop[indices]
 	return w1_pop_elite,b1_pop_elite,w2_pop_elite,b2_pop_elite
 
-def Crossover(w1_pop,b1_pop,w2_pop,b2_pop,best_size,n_pop):
-	offsprings_count = n_pop - best_size
-	for i in range(offsprings_count):
-		crossover_type = np.random.randint(4)
-		parent_index1 = np.random.randint(best_size)
-		parent_index2 = np.random.randint(best_size)
-		if(crossover_type == 0):
-			w1_pop = np.append(w1_pop,(w1_pop[[parent_index1],:] + w1_pop[[parent_index2],:])/2,axis = 0)
-			b1_pop = np.append(b1_pop,(b1_pop[[parent_index1],:] + b1_pop[[parent_index2],:])/2,axis = 0)
-			b2_pop = np.append(b2_pop,(b2_pop[[parent_index2],:]),axis = 0)
-			w2_pop = np.append(w2_pop,(w2_pop[[parent_index2],:]),axis = 0)
-		if(crossover_type == 1):
-			w1_pop = np.append(w1_pop,(w1_pop[[parent_index1],:]),axis = 0)
-			b2_pop = np.append(b2_pop,(b2_pop[[parent_index2],:] + b2_pop[[parent_index1],:])/2,axis = 0)
-			w2_pop = np.append(w2_pop,(w2_pop[[parent_index1],:]),axis = 0)
-			b1_pop = np.append(b1_pop,(b1_pop[[parent_index1],:] + b1_pop[[parent_index2],:])/2,axis = 0)
-		if(crossover_type == 2):
-			b1_pop = np.append(b1_pop,(b1_pop[[parent_index2],:]),axis = 0)
-			b2_pop = np.append(b2_pop,(b2_pop[[parent_index1],:]),axis = 0)
-			w1_pop = np.append(w1_pop,(w1_pop[[parent_index1],:] + w1_pop[[parent_index2],:])/2,axis = 0)
-			w2_pop = np.append(w2_pop,(w2_pop[[parent_index1],:] + w2_pop[[parent_index2],:])/2,axis = 0)
-		if(crossover_type == 3):
-			b1_pop = np.append(b1_pop,(b1_pop[[parent_index1],:]),axis = 0)
-			w1_pop = np.append(w1_pop,(w1_pop[[parent_index2],:] + w1_pop[[parent_index1],:])/2,axis = 0)
-			w2_pop = np.append(w2_pop,(w2_pop[[parent_index2],:]),axis = 0)
-			b2_pop = np.append(b2_pop,(b2_pop[[parent_index1],:] + b2_pop[[parent_index2],:])/2,axis = 0)
-		# print(np.shape(w1_pop))
-		# print(np.shape(b1_pop))
-		# print(np.shape(w2_pop))
-		# print(np.shape(b2_pop))
-	return w1_pop,b1_pop,w2_pop,b2_pop
+############################# Selection Methods ###############################
+
+# Truncated rank-based selection: Selects n parents to keep for reproduction
+def TruncSelect(pop_size, keep_n, fit_pop, w1_pop, w2_pop, b1_pop, b2_pop):
+    """
+    Select n best genes by their indices.
+    
+    Parameters
+    ----------
+    :pop_size:  Size of the population
+    :keep_n:    Number of individuals to keep
+    :fit_pop:   np Array containing fitness of the population
+    :w1_pop:    np Array containing the first weights of the population
+    :w2_pop:    np array containing the 2nd set of weights of the population
+    :b1_pop:    np array containing 1st bias of the population
+    :b2_pop:    np array containing 2nd bias of the population
+    
+    :returns:   np array of only best genes (w1, w2, b1, b2, indices)
+    """
+    indices = np.argpartition(fit_pop, -keep_n)[-keep_n:]
+    elite_w1 = w1_pop[indices]
+    elite_w2 = w2_pop[indices]
+    elite_b1 = b1_pop[indices]
+    elite_b2 = b2_pop[indices]
+    return elite_w1, elite_w2, elite_b1, elite_b2, indices
+
+# Proportional selection - 
+
+# Rank-based selection - 
+
+# Tournament selection - 
+
+
+
+###############################################################################
+
+################################ Replacement ##################################
+
+def Reproduction(pop_size, elite_genes, best_size):
+    offspring_count = int(pop_size / len(elite_genes))
+    assert type(offspring_count) == int, "WTF are u doing"
+    parent_genes = (np.tile(elite_genes, (offspring_count + 1, 1)))
+    parent_genes = np.resize(parent_genes, (pop_size, 2))
+    return parent_genes
+
+
+###############################################################################
+
+################################# Crossover ###################################
+
+def Crossover(TODO, type_of_crossover):
+    if type_of_crossover == 0:
+        opCrossover()
+    elif type_of_crossover == 1:
+        uniCrossover()
+    else:
+        ariCrossover()
+    return
+
+# One-point crossover - select a point in genome and crossover the rest
+def opCrossover():
+    return
+
+# Uniform crossover - Uniformaly swap out random pieces of genome
+def uniCrossover():
+    return
+
+# Arithmetic crossover - New genome is averaged from parents
+def ariCrossover(w1_pop, w2_pop, b1_pop, b2_pop, elite_w1, elite_w2, elite_b1, elite_b2, indices):
+    """
+    Reproduces genepool and applies arithmetic crossover
+    
+    Parameters
+    ----------
+    :w1_pop:    np array of 1st weights of whole population
+    :w2_pop:    np array of 2nd weights of whole population
+    :b1_pop:    np array of 1st bias of whole population
+    :b2_pop:    np array of 2nd bias of whole population
+    :elite_w1:  np array containing 1st weights of n best parents
+    :elite_w2:  np array containing 2nd weights of n best parents
+    :elite_b1:  np array containing 1st bias of n best parents
+    :elite_b2:  np array containing 2nd bias of n best parents
+    :indices:   np array containing indices of n best individuals
+    
+    :returns:   cw1, cw2, cb1, cb2 -> new population after crossover
+    """
+    # Copy of all 'elite' genes
+    cw1 = deepcopy(elite_w1)
+    cw2 = deepcopy(elite_w2)
+    cb1 = deepcopy(elite_b1)
+    cb2 = deepcopy(elite_b2)
+    
+    # While size of elite genes is smaller than original population
+    # Keep randomly chosing (from elites) 2 parents to reproduce
+    # Each time spawn a new individual by averaging parents genes
+    while (len(cw1) < len(w1_pop)):
+        father, mother = np.random.choice(indices, 2, replace=False)    
+        new_indiv = [(w1_pop[father] + w1_pop[mother])/2]
+        print("Shape new indiv: " , np.shape(new_indiv))
+        cw1 = np.concatenate((cw1, new_indiv))
+        
+    while (len(cw2) < len(w2_pop)):
+        father, mother = np.random.choice(indices, 2, replace=False)    
+        new_indiv = [(w2_pop[father] + w2_pop[mother])/2]
+        print("Shape new indiv: " , np.shape(new_indiv))
+        cw2 = np.concatenate((cw2, new_indiv))
+        
+    while (len(cb1) < len(b1_pop)):
+        father, mother = np.random.choice(indices, 2, replace=False)    
+        new_indiv = [(b1_pop[father] + b1_pop[mother])/2]
+        print("Shape new indiv: " , np.shape(new_indiv))
+        cb1 = np.concatenate((cb1, new_indiv))
+        
+    while (len(cb2) < len(b2_pop)):
+        father, mother = np.random.choice(indices, 2, replace=False)    
+        new_indiv = [(b2_pop[father] + b2_pop[mother])/2]
+        print("Shape new indiv: " , np.shape(new_indiv))
+        cb2 = np.concatenate((cb2, new_indiv))
+        
+    # Resize population to original size (since might be bigger than original)
+    cw1 = np.resize(cw1, (np.shape(w1_pop)))
+    cw2 = np.resize(cw2, (np.shape(w2_pop)))
+    cb1 = np.resize(cb1, (np.shape(b1_pop)))
+    cb2 = np.resize(cb2, (np.shape(b2_pop)))
+    
+    # Return population after crossover
+    return cw1 , cw2, cb1, cb2
+###############################################################################
+
+
+################################# Mutation ####################################
+# Mutation through gaussian noise
+def gausMutation(w1_pop, w2_pop, b1_pop, b2_pop, elite_w1, elite_w2, elite_b1, elite_b2, indices):
+    """
+    Applies (gaussian) mutation to next generation
+    
+    Parameters
+    ----------
+    :w1_pop:    np array of 1st weights of whole population
+    :w2_pop:    np array of 2nd weights of whole population
+    :b1_pop:    np array of 1st bias of whole population
+    :b2_pop:    np array of 2nd bias of whole population
+    :elite_w1:  np array containing 1st weights of n best parents
+    :elite_w2:  np array containing 2nd weights of n best parents
+    :elite_b1:  np array containing 1st bias of n best parents
+    :elite_b2:  np array containing 2nd bias of n best parents
+    :indices:   np array containing indices of n best individuals
+    
+    :returns:   mw1_pop, mw2_pop, mb1_pop, mb2_pop -> mutated population
+    """
+    # Create a copy of all genes
+    mw1_pop = deepcopy(w1_pop)
+    mw2_pop = deepcopy(w2_pop)
+    mb1_pop = deepcopy(b1_pop)
+    mb2_pop = deepcopy(b2_pop)
+    
+    # Create uniformly distributed noise in shape of genes
+    g1 = np.random.uniform(-1,1,(np.shape(w1_pop)))
+    g2 = np.random.uniform(-1,1,(np.shape(w2_pop)))
+    g3 = np.random.uniform(-1,1,(np.shape(b1_pop)))
+    g4 = np.random.uniform(-1,1,(np.shape(b2_pop)))
+    
+    # 0 Noise for parents
+    for i in indices:
+        g1[i] = 0
+        g2[i] = 0
+        g3[i] = 0
+        g4[i] = 0
+    
+    # Add noise "mutation" 
+    mw1_pop = mw1_pop + g1
+    mw2_pop = mw2_pop + g2
+    mb1_pop = mb1_pop + g3
+    mb2_pop = mb2_pop + g4
+    
+    return mw1_pop, mw2_pop, mb1_pop, mb2_pop
+
+
+def Mutation(parent_genes, best_size, pop_size):
+    new_pop = deepcopy(parent_genes)  # Create deep copy of parentpool
+    var_zeros = np.zeros((best_size))
+    mut_chanceX = np.concatenate((var_zeros - 1, np.random.uniform(0, 1, (pop_size - best_size))))
+    mut_chanceY = np.concatenate((var_zeros - 1, np.random.uniform(0, 1, (pop_size - best_size))))
+
+    rng_mutationX = np.random.uniform(-1, 1, pop_size)  # 10 random uniform numbers
+    rng_mutationY = np.random.uniform(-1, 1, pop_size)  # 10 random uniform numbers
+
+    new_popX = np.where(mut_chanceX < mutation_prob, new_pop[:, 0], new_pop[:, 0] + rng_mutationX)
+    new_popY = np.where(mut_chanceY < mutation_prob, new_pop[:, 1], new_pop[:, 1] + rng_mutationY)
+
+    new_pop = np.array([new_popX, new_popY])
+
+    return new_pop.T
+
+###############################################################################
+
 
 ################ Walls & Sensors ####################
 margin = 20
@@ -493,7 +663,7 @@ best_size = int(n_pop/5)
 #print("weights0", weights[0])
 print(fit_pop)
 while run:
-    for gen in range(n_gen):
+    for gen in range(n_gen):                # After each Gen: Sel, Rep, Sel/Mut
         print("Generation: ", gen)
         fit_pop = np.empty((0,1))
         for pop in range(n_pop):
@@ -506,7 +676,7 @@ while run:
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         exit()
-                pygame.time.delay(60)   
+                pygame.time.delay(30)   
                 
                 ##### 
                 distances = np.asarray(distances)/180
@@ -601,12 +771,18 @@ while run:
             dust_positions = CreateDust(no_paricles,w_width - walls_thickness,w_height - walls_thickness)
             fit_pop = np.append(fit_pop, fitness)
             fitness = 0
-        w1_elite,b1_elite,w2_elite,b2_elite = Selection(w1_pop,b1_pop,w2_pop,b2_pop,fit_pop,best_size)
-        w1_pop,b1_pop,w2_pop,b2_pop = Crossover(w1_elite,b1_elite,w2_elite,b2_elite,best_size,n_pop)
-        print(np.shape(w1_pop))
-        print(np.shape(b1_pop))
-        print(np.shape(w2_pop))
-        print(np.shape(b2_pop))
+        #### Selection
+        print("Fitness pop array: ", fit_pop)
+        e_w1, e_w2, e_b1, e_b2, e_indices = TruncSelect(n_pop, keep_n, fit_pop, w1_pop, w2_pop, b1_pop, b2_pop)
+        #### Reproduction
+        
+        #### Crossover/Mutation
+        cw1, cw2, cb1, cb2 = ariCrossover(w1_pop, w2_pop, b1_pop, b2_pop, e_w1, e_w2, e_b1, e_b2, e_indices)
+        
+        mw1_pop, mw2_pop, mb1_pop, mb2_pop = gausMutation(cw1, cw2, cb1, cb2, e_w1, e_w2, e_b1, e_b2, e_indices)
+        
+        w1_pop, w2_pop, b1_pop, b2_pop = mw1_pop, mw2_pop, mb1_pop, mb2_pop
+        
     run = False
 
 run = False        
