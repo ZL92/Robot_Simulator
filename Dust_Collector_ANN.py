@@ -52,7 +52,10 @@ tst = False
 no_paricles = 100
 radius_dust = 2
 particles_cleared = 0
-max_iters_pergen = 100
+max_iters_pergen = 200
+prev_v_r = 0
+prev_v_l = 0
+prev_fitness = 0
 
 ################## Numbers ###################
 
@@ -78,12 +81,13 @@ BG_COLOR = Color("lightblue")
 ################# Functions ##################
 
 def fitness_function(particles_cleared,sensor_distances,collision_count,timestep,v_l,v_r,fitness):
+	global prev_v_r,prev_v_l,prev_fitness
 	dist_threshold = 10
 	terminate = False
 	np_distances = np.asarray(sensor_distances)
 	np_distances = np.where((np_distances > 10) & (np_distances < 40), 1, 0)
 	closer_wall_factor = np.sum(np_distances)/12
-	fitness += (4 * particles_cleared  + 2 * closer_wall_factor - 4 * collision_count) * ((abs(v_l) + abs(v_r))/2)
+	fitness += (4 * particles_cleared  + 2 * closer_wall_factor - 4 * collision_count) * ((v_l + v_r)/(60))
 	if(timestep%30 == 0):
 		prev_v_l = v_l
 		prev_v_r = v_r
@@ -92,6 +96,8 @@ def fitness_function(particles_cleared,sensor_distances,collision_count,timestep
 			terminate = True
 		if(prev_v_l == 0 and prev_v_r == 0 and v_l == 0 and v_r == 0):
 			terminate = True
+	if(collision_count > 0 or (v_l + v_r == 0)):
+		terminate = True
 	return fitness, terminate
 
 	
@@ -352,12 +358,20 @@ def initWeights():
     
     return weight_l1, weight_l2, bias, bias2
 
-def feedForward(x, weight_l1, weight_l2, bias, bias2):
-    h1 = np.dot(weight_l1, x.T) + bias
-    a1 = np.tanh(h1)
-    h2 = np.dot(weight_l2, a1.T) + bias2
-    output = np.tanh(h2)
-    return output
+def feedForward(x, weight_l1, weight_l2, bias, bias2,r1,timestep):
+	swap = False
+	x = x.astype(np.float64)
+	r1 = r1.astype(np.float64)
+	if(timestep!=0 and timestep%30 == 0):
+		x[0:4] += r1[0:4]
+	h1 = np.dot(weight_l1, x.T) + bias
+	a1 = np.tanh(h1)
+	if(timestep%30 ==0):
+		swap = True
+		recurrent_layer = a1
+	h2 = np.dot(weight_l2, a1.T) + bias2
+	output = np.tanh(h2)
+	return output,a1,swap
 #####################################################
 
 
@@ -433,9 +447,9 @@ w1_pop = np.random.randn(n_pop, 6, 12)
 w2_pop = np.random.randn(n_pop, 2, 6)
 b1_pop = np.random.randn(n_pop,1)
 b2_pop = np.random.randn(n_pop,1)
-
+recurrent1 = np.random.randn(6,1)
 fit_pop = np.empty((0,1))
-
+np.random.seed(0)
 #print("Weights: ", weights)
 #print("weights0", weights[0])
 print(fit_pop)
@@ -455,8 +469,10 @@ while run:
                 pygame.time.delay(60)   
                 
                 ##### 
-                t_v_r, t_v_l = feedForward(np.asarray(distances), w1, w2, b1, b2)
-                
+                t_v,t_r_1,swap = feedForward(np.asarray(distances), w1, w2, b1, b2,recurrent1,t)
+                if swap:
+                	recurrent1 = t_r_1
+                t_v_r,t_v_l = t_v
                 v_r += t_v_r
                 v_l += t_v_l
                 
