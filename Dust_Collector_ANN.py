@@ -49,7 +49,7 @@ w_pressed = False
 s_pressed = False
 
 tst = False
-no_paricles = 100
+no_paricles = 300
 radius_dust = 2
 particles_cleared = 0
 max_iters_pergen = 200
@@ -59,7 +59,7 @@ prev_fitness = 0
 
 ################## Numbers ###################
 
-n_gen = 1         
+n_gen = 30         
 n_pop = 10
 
 ##############################################
@@ -87,7 +87,7 @@ def fitness_function(particles_cleared,sensor_distances,collision_count,timestep
 	np_distances = np.asarray(sensor_distances)
 	np_distances = np.where((np_distances > 10) & (np_distances < 40), 1, 0)
 	closer_wall_factor = np.sum(np_distances)/12
-	fitness += (4 * particles_cleared  + 2 * closer_wall_factor - 4 * collision_count) * ((v_l + v_r)/(60))
+	fitness += (4 * particles_cleared  + 2 * closer_wall_factor - 4 * collision_count) * (abs(v_l + v_r)/(60))
 	if(timestep%30 == 0):
 		prev_v_l = v_l
 		prev_v_r = v_r
@@ -96,11 +96,13 @@ def fitness_function(particles_cleared,sensor_distances,collision_count,timestep
 			terminate = True
 		if(prev_v_l == 0 and prev_v_r == 0 and v_l == 0 and v_r == 0):
 			terminate = True
-	if(collision_count > 0 or (v_l + v_r == 0)):
+	if(collision_count > 0 or int(v_l + v_r) == 0):
 		terminate = True
 	return fitness, terminate
 
 	
+def sigmoid(x):
+  return 1 / (1 + np.exp(-x))
 
 def CreateDust(no_paricles,width,height):
 	random_coord = np.random.rand(no_paricles,2)
@@ -368,13 +370,50 @@ def feedForward(x, weight_l1, weight_l2, bias, bias2,r1,timestep):
 	a1 = np.tanh(h1)
 	if(timestep%30 ==0):
 		swap = True
-		recurrent_layer = a1
+		r1 = a1
 	h2 = np.dot(weight_l2, a1.T) + bias2
 	output = np.tanh(h2)
-	return output,a1,swap
+	return output,r1,swap
 #####################################################
+def Selection(w1_pop,b1_pop,w2_pop,b2_pop,fit_pop,best_size):
+	indices = np.argpartition(fit_pop, -best_size)[-best_size:]
+	w1_pop_elite = w1_pop[indices]
+	b1_pop_elite = b1_pop[indices]
+	w2_pop_elite = w2_pop[indices]
+	b2_pop_elite = b2_pop[indices]
+	return w1_pop_elite,b1_pop_elite,w2_pop_elite,b2_pop_elite
 
-
+def Crossover(w1_pop,b1_pop,w2_pop,b2_pop,best_size,n_pop):
+	offsprings_count = n_pop - best_size
+	for i in range(offsprings_count):
+		crossover_type = np.random.randint(4)
+		parent_index1 = np.random.randint(best_size)
+		parent_index2 = np.random.randint(best_size)
+		if(crossover_type == 0):
+			w1_pop = np.append(w1_pop,(w1_pop[[parent_index1],:] + w1_pop[[parent_index2],:])/2,axis = 0)
+			b1_pop = np.append(b1_pop,(b1_pop[[parent_index1],:] + b1_pop[[parent_index2],:])/2,axis = 0)
+			b2_pop = np.append(b2_pop,(b2_pop[[parent_index2],:]),axis = 0)
+			w2_pop = np.append(w2_pop,(w2_pop[[parent_index2],:]),axis = 0)
+		if(crossover_type == 1):
+			w1_pop = np.append(w1_pop,(w1_pop[[parent_index1],:]),axis = 0)
+			b2_pop = np.append(b2_pop,(b2_pop[[parent_index2],:] + b2_pop[[parent_index1],:])/2,axis = 0)
+			w2_pop = np.append(w2_pop,(w2_pop[[parent_index1],:]),axis = 0)
+			b1_pop = np.append(b1_pop,(b1_pop[[parent_index1],:] + b1_pop[[parent_index2],:])/2,axis = 0)
+		if(crossover_type == 2):
+			b1_pop = np.append(b1_pop,(b1_pop[[parent_index2],:]),axis = 0)
+			b2_pop = np.append(b2_pop,(b2_pop[[parent_index1],:]),axis = 0)
+			w1_pop = np.append(w1_pop,(w1_pop[[parent_index1],:] + w1_pop[[parent_index2],:])/2,axis = 0)
+			w2_pop = np.append(w2_pop,(w2_pop[[parent_index1],:] + w2_pop[[parent_index2],:])/2,axis = 0)
+		if(crossover_type == 3):
+			b1_pop = np.append(b1_pop,(b1_pop[[parent_index1],:]),axis = 0)
+			w1_pop = np.append(w1_pop,(w1_pop[[parent_index2],:] + w1_pop[[parent_index1],:])/2,axis = 0)
+			w2_pop = np.append(w2_pop,(w2_pop[[parent_index2],:]),axis = 0)
+			b2_pop = np.append(b2_pop,(b2_pop[[parent_index1],:] + b2_pop[[parent_index2],:])/2,axis = 0)
+		# print(np.shape(w1_pop))
+		# print(np.shape(b1_pop))
+		# print(np.shape(w2_pop))
+		# print(np.shape(b2_pop))
+	return w1_pop,b1_pop,w2_pop,b2_pop
 
 ################ Walls & Sensors ####################
 margin = 20
@@ -439,25 +478,26 @@ collison_walls = [
         ]
 ####################################################################
 ################### ------- MAIN LOOP ------- ######################
+np.random.seed(0)
 dust_positions = CreateDust(no_paricles,w_width - walls_thickness,w_height - walls_thickness)
 timestep = 0
 fitness = 0
-
 w1_pop = np.random.randn(n_pop, 6, 12)
 w2_pop = np.random.randn(n_pop, 2, 6)
 b1_pop = np.random.randn(n_pop,1)
 b2_pop = np.random.randn(n_pop,1)
 recurrent1 = np.random.randn(6,1)
 fit_pop = np.empty((0,1))
-np.random.seed(0)
+best_size = int(n_pop/5)
 #print("Weights: ", weights)
 #print("weights0", weights[0])
 print(fit_pop)
 while run:
     for gen in range(n_gen):
         print("Generation: ", gen)
+        fit_pop = np.empty((0,1))
         for pop in range(n_pop):
-            x, y = (w_width/2,w_height/2)
+            x, y = (100,400)
             w1, w2, b1, b2 = w1_pop[pop], w2_pop[pop], b1_pop[pop], b2_pop[pop]
             pygame.init()
             print("Population: ", pop)
@@ -469,12 +509,13 @@ while run:
                 pygame.time.delay(60)   
                 
                 ##### 
+                distances = np.asarray(distances)/180
                 t_v,t_r_1,swap = feedForward(np.asarray(distances), w1, w2, b1, b2,recurrent1,t)
                 if swap:
                 	recurrent1 = t_r_1
                 t_v_r,t_v_l = t_v
-                v_r += t_v_r
-                v_l += t_v_l
+                v_r = t_v_r * 30
+                v_l = t_v_l * 30
                 
                 if(v_r > 0):
                     v_r = np.min([v_r, 30])
@@ -483,8 +524,7 @@ while run:
                 if(v_l > 0):
                     v_l = np.min([v_l, 30])
                 else:
-                    v_l = np.max([v_l, -30])
-                            
+                    v_l = np.max([v_l, -30])           
                 ### Redraw
                 win.fill((BG_COLOR))
                 borders, borders_line = drawWalls()
@@ -561,6 +601,12 @@ while run:
             dust_positions = CreateDust(no_paricles,w_width - walls_thickness,w_height - walls_thickness)
             fit_pop = np.append(fit_pop, fitness)
             fitness = 0
+        w1_elite,b1_elite,w2_elite,b2_elite = Selection(w1_pop,b1_pop,w2_pop,b2_pop,fit_pop,best_size)
+        w1_pop,b1_pop,w2_pop,b2_pop = Crossover(w1_elite,b1_elite,w2_elite,b2_elite,best_size,n_pop)
+        print(np.shape(w1_pop))
+        print(np.shape(b1_pop))
+        print(np.shape(w2_pop))
+        print(np.shape(b2_pop))
     run = False
 
 run = False        
