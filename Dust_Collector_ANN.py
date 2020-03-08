@@ -13,13 +13,11 @@ import numpy as np
 from shapely.geometry import *
 from utils import *
 
-from scipy.spatial.distance import pdist, squareform
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import time
 from pygame.locals import *
-
+from scipy.spatial.distance import pdist, squareform
 # from sympy import * #Point, intersection
 # from geometer.point import *
 # from geometer.shapes import *
@@ -55,7 +53,6 @@ tst = False  # Add sensor values text
 no_paricles = 3000
 radius_dust = 2
 particles_cleared = 0
-past_cleared = 0
 max_iters_pergen = 200
 prev_v_r = 0
 prev_v_l = 0
@@ -63,13 +60,13 @@ prev_fitness = 0
 filename = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 ################## Numbers ###################
 
-n_gen = 10
-n_pop = 20
+n_gen = 3
+n_pop = 10
 
 ##############################################
 
 ########### EA ##################
-keep_n = int(n_pop/5)
+keep_n = 3
 #################################
 
 ################# RGB Colors #################
@@ -109,27 +106,6 @@ def fitness_function(particles_cleared, sensor_distances, collision_count, times
         terminate = True
     return fitness, terminate
 
-def fitness_function2(past_cleared, particles_cleared, sensor_distances, collision_count, timestep, v_l, v_r, fitness):
-    global prev_v_r, prev_v_l, prev_fitness
-    dist_threshold = 10
-    terminate = False
-    discount_past = 0.7 * past_cleared
-    np_distances = np.asarray(sensor_distances)
-    np_distances = np.where((np_distances > 10) & (np_distances < 40), 1, 0)
-    closer_wall_factor = np.sum(np_distances) / 12
-    fitness += (4 * particles_cleared + 2 * closer_wall_factor - 4 * collision_count + discount_past) * (abs(v_l + v_r) / (60))
-    if (timestep % 30 == 0):
-        prev_v_l = v_l
-        prev_v_r = v_r
-        prev_fitness = fitness
-        if (prev_fitness < 0 and fitness < 0):
-            terminate = True
-        if (prev_v_l == 0 and prev_v_r == 0 and v_l == 0 and v_r == 0):
-            terminate = True
-    if (collision_count > 0 or int(v_l + v_r) < 5):
-        terminate = True
-    return fitness, terminate, discount_past
-
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
@@ -164,24 +140,48 @@ def plotting_errorbar(y):
     y_avg = np.mean(y, axis=1)
     std = np.std(y, axis=1)
     x = np.arange(0, len(y), 1)
-    plt.errorbar(x, y_avg ,yerr=std,linestyle = '--', marker='x')
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.errorbar(x, y_avg ,yerr=std, linestyle = '--', marker='x')
+    ax.set_ylabel('fitness')
+    ax.set_xlabel('Generations')
     plt.show()
-    return
 
-# TODO    
-def plotting_errorbar_max(y):
-    y_avg = np.mean(y, axis=1)
-    std = np.std(y, axis=1)
-    x = np.arange(0, len(y), 1)
-    plt.errorbar(x, y_avg ,yerr=std,linestyle = '--', marker='x')
-    plt.show()
-    return
 
 def plotting_diversity(diversity_per_generation, fitness_per_generation):
-    plt.figure(2)
-    plt.plot(diversity_per_generation)
-    plt.plot(np.sum(fitness_per_generation, axis=1))
-    return
+    x = np.arange(0, len(diversity_per_generation), 1)
+    fig, ax1 = plt.subplots()
+    color = 'tab:red'
+    ax1.set_xlabel('Generations')
+    ax1.set_ylabel('Diversity', color = color)
+    ax1.plot(x, diversity_per_generation, color = color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+    color = 'tab:blue'
+    ax2.set_ylabel('Fitness', color = color)
+    ax2.plot(x, np.sum(fitness_per_generation, axis=1), color = color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    fig.tight_layout() # otherwise the right y-label is slightly clipped
+
+    plt.show()
+
+def plotting_trajectory(gen, trajectory):
+    trajectory_x = [int(t.x) for t in trajectory]
+    trajectory_y = [int(t.y) for t in trajectory]
+    poly = Polygon(experiment_room)
+    poly_x, poly_y = poly.exterior.xy
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(poly_x, poly_y)
+    ax.plot(trajectory_x, trajectory_y)
+    ax.set_xlim(0, w_width)
+    ax.set_ylim(0, w_height)
+    ax.set_title('Generation : {}'.format(gen))
+    plt.show()
+
 
 def createWorld():
     return
@@ -684,6 +684,7 @@ diversity_per_generation = []
 while run:
     for gen in range(n_gen):
         print("Generation: ", gen)
+        trajectory = [] # Reset list for plotting the trajectory of each generation
         fit_pop = np.empty((0, 1))
         for pop in range(n_pop):
             x, y = (w_width / 2, w_height/2) #Reset coordinate for every population.
@@ -697,7 +698,7 @@ while run:
                         exit()
                 pygame.time.delay(10)
 
-                ##### 
+                #####
                 distances = np.asarray(distances) / 180
                 t_v, t_r_1, swap = feedForward(np.asarray(distances), w1, w2, b1, b2, recurrent1, t)
                 if swap:
@@ -778,40 +779,40 @@ while run:
                     bot_c = Point((x), (y))
 
                 else:
+                    #Movement when detecting two walls, to be investigated. For now stopping.
+
                     distances = drawSensors()
                     pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
                     line = pygame.draw.line(win, YELLOW, (x, y),
                                             (x + radius * -np.cos(angle), (y + radius * np.sin(angle))),
                                             int(radius / 10))
                     drawspeeds()
-                    #Movement when detecting two walls, to be investigated
-                    v_r = -v_r
-                    v_l = -v_l
-                ###########################
-                # Update / Call next tick #
+                    bot_c = Point((x), (y))
 
+                ###########################
+
+                trajectory.append(bot_c)
+
+                # Update / Call next tick #
                 if angle > 2 * np.pi:
                     angle = angle - 2 * np.pi
                 elif angle < -2 * np.pi:
                     angle = angle + 2 * np.pi
                 timestep = timestep + 1
-#                fitness, terminate = fitness_function(count_cleared, distances, collision_count, timestep, v_l, v_r,
-#                                                      fitness)
-#                
-                ## TEST
-                fitness, terminate, discount_past = fitness_function2(past_cleared, count_cleared, distances, collision_count, timestep, v_l, v_r,
-                                      fitness)
-                past_cleared = discount_past + count_cleared
-                
-                ## \TEST
+                fitness, terminate = fitness_function(count_cleared, distances, collision_count, timestep, v_l, v_r,
+                                                      fitness)
                 #    print(fitness)
                 if (terminate):
                     break
                 pygame.display.update()
+
             print(fitness)
             dust_positions = CreateDust(no_paricles, w_width - walls_thickness, w_height - walls_thickness)
             fit_pop = np.append(fit_pop, fitness)
             fitness = 0
+
+        #### Plotting trajectory ####
+        plotting_trajectory(gen, trajectory)
 
         #### Selection ####
         print("Fitness pop array: ", fit_pop)
@@ -823,15 +824,7 @@ while run:
         mw1_pop, mw2_pop, mb1_pop, mb2_pop = gausMutation(cw1, cw2, cb1, cb2, e_w1, e_w2, e_b1, e_b2, e_indices)
         w1_pop, w2_pop, b1_pop, b2_pop = mw1_pop, mw2_pop, mb1_pop, mb2_pop
         fitness_per_generation.append(fit_pop)
-        
-        
-#        for i in range(1, len(population)):
-#            for j in range(0, len(population[i-1].get_weights())):
-#                # print(population[i-1].get_weights()[j][0], population[i].get_weights()[j][0])
-#                chromosome_diversity += sp.spatial.distance.euclidean(population[i-1].get_weights()[j][0], population[i].get_weights()[j][0])
-#        diversity.append(chromosome_diversity)  
-#
-#        
+
         testdiv = 0
         for k in range(len(w1_pop[0])):
             for i in range(n_pop):
@@ -839,15 +832,16 @@ while run:
                     testdiv += pdist([w1_pop[i][k], w1_pop[j][k]])
         for k in range(len(w2_pop[0])):
             for i in range(n_pop):
-               for j in range(n_pop):
-                   testdiv += pdist([w2_pop[i][k], w2_pop[j][k]])
-        
+                for j in range(n_pop):
+                    testdiv += pdist([w2_pop[i][k], w2_pop[j][k]])
+
         testdiv += np.sum(pdist(b1_pop))
         testdiv += np.sum(pdist(b2_pop))
-        print(testdiv)        
-        
+        print(testdiv)
+
         diversity_per_generation.append(testdiv)
 
+        # ###### Saves weights to a file #####
         # save_weights_per_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
     run = False
 
@@ -858,10 +852,8 @@ print("Cleared particles: {}".format(particles_cleared))
 
 #### Plotting ####
 plotting_errorbar(fitness_per_generation)
-#plotting_errorbar(np.max(fitness_per_generation))
 plotting_diversity(diversity_per_generation, fitness_per_generation)
 
-
-
+##### Saves weights to a file #####
 save_weights_final_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
 pygame.quit()
