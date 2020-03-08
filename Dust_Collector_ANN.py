@@ -92,7 +92,7 @@ def fitness_function(particles_cleared,sensor_distances,collision_count,timestep
 	np_distances = np.asarray(sensor_distances)
 	np_distances = np.where((np_distances > 10) & (np_distances < 40), 1, 0)
 	closer_wall_factor = np.sum(np_distances)/12
-	fitness += (4 * particles_cleared  + 2 * closer_wall_factor - 4 * collision_count) * (abs(v_l + v_r)/(60))
+	fitness += (4 * particles_cleared  + 10 * closer_wall_factor - 4 * collision_count) * (abs(v_l + v_r)/(60))
 	if(timestep%30 == 0):
 		prev_v_l = v_l
 		prev_v_r = v_r
@@ -486,25 +486,21 @@ def ariCrossover(w1_pop, w2_pop, b1_pop, b2_pop, elite_w1, elite_w2, elite_b1, e
     while (len(cw1) < len(w1_pop)):
         father, mother = np.random.choice(indices, 2, replace=False)    
         new_indiv = [(w1_pop[father] + w1_pop[mother])/2]
-        print("Shape new indiv: " , np.shape(new_indiv))
         cw1 = np.concatenate((cw1, new_indiv))
         
     while (len(cw2) < len(w2_pop)):
         father, mother = np.random.choice(indices, 2, replace=False)    
         new_indiv = [(w2_pop[father] + w2_pop[mother])/2]
-        print("Shape new indiv: " , np.shape(new_indiv))
         cw2 = np.concatenate((cw2, new_indiv))
         
     while (len(cb1) < len(b1_pop)):
         father, mother = np.random.choice(indices, 2, replace=False)    
         new_indiv = [(b1_pop[father] + b1_pop[mother])/2]
-        print("Shape new indiv: " , np.shape(new_indiv))
         cb1 = np.concatenate((cb1, new_indiv))
         
     while (len(cb2) < len(b2_pop)):
         father, mother = np.random.choice(indices, 2, replace=False)    
         new_indiv = [(b2_pop[father] + b2_pop[mother])/2]
-        print("Shape new indiv: " , np.shape(new_indiv))
         cb2 = np.concatenate((cb2, new_indiv))
         
     # Resize population to original size (since might be bigger than original)
@@ -558,29 +554,14 @@ def gausMutation(w1_pop, w2_pop, b1_pop, b2_pop, elite_w1, elite_w2, elite_b1, e
         g4[i] = 0
     
     # Add noise "mutation" 
-    mw1_pop = mw1_pop + g1
-    mw2_pop = mw2_pop + g2
-    mb1_pop = mb1_pop + g3
-    mb2_pop = mb2_pop + g4
+    mw1_pop = mw1_pop + g1*0.01
+    mw2_pop = mw2_pop + g2*0.01
+    mb1_pop = mb1_pop + g3*0.01
+    mb2_pop = mb2_pop + g4*0.01
     
     return mw1_pop, mw2_pop, mb1_pop, mb2_pop
 
 
-def Mutation(parent_genes, best_size, pop_size):
-    new_pop = deepcopy(parent_genes)  # Create deep copy of parentpool
-    var_zeros = np.zeros((best_size))
-    mut_chanceX = np.concatenate((var_zeros - 1, np.random.uniform(0, 1, (pop_size - best_size))))
-    mut_chanceY = np.concatenate((var_zeros - 1, np.random.uniform(0, 1, (pop_size - best_size))))
-
-    rng_mutationX = np.random.uniform(-1, 1, pop_size)  # 10 random uniform numbers
-    rng_mutationY = np.random.uniform(-1, 1, pop_size)  # 10 random uniform numbers
-
-    new_popX = np.where(mut_chanceX < mutation_prob, new_pop[:, 0], new_pop[:, 0] + rng_mutationX)
-    new_popY = np.where(mut_chanceY < mutation_prob, new_pop[:, 1], new_pop[:, 1] + rng_mutationY)
-
-    new_pop = np.array([new_popX, new_popY])
-
-    return new_pop.T
 
 ###############################################################################
 
@@ -667,6 +648,7 @@ while run:
         print("Generation: ", gen)
         fit_pop = np.empty((0,1))
         for pop in range(n_pop):
+            particles_cleared = 0
             x, y = (100,400)
             w1, w2, b1, b2 = w1_pop[pop], w2_pop[pop], b1_pop[pop], b2_pop[pop]
             pygame.init()
@@ -676,7 +658,7 @@ while run:
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         exit()
-                pygame.time.delay(30)   
+                pygame.time.delay(10)   
                 
                 ##### 
                 distances = np.asarray(distances)/180
