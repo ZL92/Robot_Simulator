@@ -13,6 +13,8 @@ import numpy as np
 from shapely.geometry import *
 from utils import *
 
+from scipy.spatial.distance import pdist, squareform
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import time
@@ -60,8 +62,8 @@ prev_fitness = 0
 filename = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 ################## Numbers ###################
 
-n_gen = 5
-n_pop = 10
+n_gen = 10
+n_pop = 100
 
 ##############################################
 
@@ -142,6 +144,22 @@ def plotting_errorbar(y):
     x = np.arange(0, len(y), 1)
     plt.errorbar(x, y_avg ,yerr=std,linestyle = '--', marker='x')
     plt.show()
+    return
+
+# TODO    
+def plotting_errorbar_max(y):
+    y_avg = np.mean(y, axis=1)
+    std = np.std(y, axis=1)
+    x = np.arange(0, len(y), 1)
+    plt.errorbar(x, y_avg ,yerr=std,linestyle = '--', marker='x')
+    plt.show()
+    return
+
+def plotting_diversity(diversity_per_generation, fitness_per_generation):
+    plt.figure(2)
+    plt.plot(diversity_per_generation)
+    plt.plot(np.sum(fitness_per_generation, axis=1))
+    return
 
 def createWorld():
     return
@@ -639,6 +657,7 @@ best_size = int(n_pop / 5)
 print(fit_pop)
 
 fitness_per_generation = []
+diversity_per_generation = []
 
 while run:
     for gen in range(n_gen):
@@ -775,6 +794,30 @@ while run:
         mw1_pop, mw2_pop, mb1_pop, mb2_pop = gausMutation(cw1, cw2, cb1, cb2, e_w1, e_w2, e_b1, e_b2, e_indices)
         w1_pop, w2_pop, b1_pop, b2_pop = mw1_pop, mw2_pop, mb1_pop, mb2_pop
         fitness_per_generation.append(fit_pop)
+        
+        
+#        for i in range(1, len(population)):
+#            for j in range(0, len(population[i-1].get_weights())):
+#                # print(population[i-1].get_weights()[j][0], population[i].get_weights()[j][0])
+#                chromosome_diversity += sp.spatial.distance.euclidean(population[i-1].get_weights()[j][0], population[i].get_weights()[j][0])
+#        diversity.append(chromosome_diversity)  
+#
+#        
+        testdiv = 0
+        for k in range(len(w1_pop[0])):
+            for i in range(n_pop):
+                for j in range(n_pop):
+                    testdiv += pdist([w1_pop[i][k], w1_pop[j][k]])
+        for k in range(len(w2_pop[0])):
+            for i in range(n_pop):
+               for j in range(n_pop):
+                   testdiv += pdist([w2_pop[i][k], w2_pop[j][k]])
+        
+        testdiv += np.sum(pdist(b1_pop))
+        testdiv += np.sum(pdist(b2_pop))
+        print(testdiv)        
+        
+        diversity_per_generation.append(testdiv)
 
         # save_weights_per_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
     run = False
@@ -786,6 +829,9 @@ print("Cleared particles: {}".format(particles_cleared))
 
 #### Plotting ####
 plotting_errorbar(fitness_per_generation)
+#plotting_errorbar(np.max(fitness_per_generation))
+plotting_diversity(diversity_per_generation, fitness_per_generation)
+
 
 
 save_weights_final_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
