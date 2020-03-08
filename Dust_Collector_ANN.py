@@ -60,7 +60,7 @@ prev_fitness = 0
 filename = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 ################## Numbers ###################
 
-n_gen = 30
+n_gen = 5
 n_pop = 10
 
 ##############################################
@@ -136,7 +136,12 @@ def create_font(t,s=15,c=(0,0,0), b=False,i=False):
     text = font.render(t, True, c)
     return text
 
-
+def plotting_errorbar(y):
+    y_avg = np.mean(y, axis=1)
+    std = np.std(y, axis=1)
+    x = np.arange(0, len(y), 1)
+    plt.errorbar(x, y_avg ,yerr=std,linestyle = '--', marker='x')
+    plt.show()
 
 def createWorld():
     return
@@ -591,6 +596,7 @@ line_right = LineString([b2_s, b2_e])
 line_bottom = LineString([b3_s, b3_e])
 line_left = LineString([b4_s, b4_e])
 
+#Room Initilization (vertices in order)
 room1 = LineString([Point(200, 200), Point(200, w_width-200), Point(w_height-200, w_width-200), Point(w_height-200, 200)])
 room2 = LineString([Point(100, 100), Point(400, 100), Point(w_height-100, 700), Point(300, 500)])
 rooms = {'1' : room1, "2" : room2}
@@ -631,6 +637,9 @@ best_size = int(n_pop / 5)
 # print("Weights: ", weights)
 # print("weights0", weights[0])
 print(fit_pop)
+
+fitness_per_generation = []
+
 while run:
     for gen in range(n_gen):
         print("Generation: ", gen)
@@ -765,7 +774,7 @@ while run:
         cw1, cw2, cb1, cb2 = ariCrossover(w1_pop, w2_pop, b1_pop, b2_pop, e_w1, e_w2, e_b1, e_b2, e_indices)
         mw1_pop, mw2_pop, mb1_pop, mb2_pop = gausMutation(cw1, cw2, cb1, cb2, e_w1, e_w2, e_b1, e_b2, e_indices)
         w1_pop, w2_pop, b1_pop, b2_pop = mw1_pop, mw2_pop, mb1_pop, mb2_pop
-
+        fitness_per_generation.append(fit_pop)
 
         # save_weights_per_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
     run = False
@@ -774,6 +783,10 @@ run = False
 print("Fitpop", fit_pop)
 ###################################################
 print("Cleared particles: {}".format(particles_cleared))
+
+#### Plotting ####
+plotting_errorbar(fitness_per_generation)
+
 
 save_weights_final_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
 pygame.quit()
