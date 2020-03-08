@@ -55,6 +55,7 @@ tst = False  # Add sensor values text
 no_paricles = 3000
 radius_dust = 2
 particles_cleared = 0
+past_cleared = 0
 max_iters_pergen = 200
 prev_v_r = 0
 prev_v_l = 0
@@ -63,12 +64,12 @@ filename = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 ################## Numbers ###################
 
 n_gen = 10
-n_pop = 100
+n_pop = 20
 
 ##############################################
 
 ########### EA ##################
-keep_n = 3
+keep_n = int(n_pop/5)
 #################################
 
 ################# RGB Colors #################
@@ -107,6 +108,27 @@ def fitness_function(particles_cleared, sensor_distances, collision_count, times
     if (collision_count > 0 or int(v_l + v_r) == 0):
         terminate = True
     return fitness, terminate
+
+def fitness_function2(past_cleared, particles_cleared, sensor_distances, collision_count, timestep, v_l, v_r, fitness):
+    global prev_v_r, prev_v_l, prev_fitness
+    dist_threshold = 10
+    terminate = False
+    discount_past = 0.7 * past_cleared
+    np_distances = np.asarray(sensor_distances)
+    np_distances = np.where((np_distances > 10) & (np_distances < 40), 1, 0)
+    closer_wall_factor = np.sum(np_distances) / 12
+    fitness += (4 * particles_cleared + 2 * closer_wall_factor - 4 * collision_count + discount_past) * (abs(v_l + v_r) / (60))
+    if (timestep % 30 == 0):
+        prev_v_l = v_l
+        prev_v_r = v_r
+        prev_fitness = fitness
+        if (prev_fitness < 0 and fitness < 0):
+            terminate = True
+        if (prev_v_l == 0 and prev_v_r == 0 and v_l == 0 and v_r == 0):
+            terminate = True
+    if (collision_count > 0 or int(v_l + v_r) < 5):
+        terminate = True
+    return fitness, terminate, discount_past
 
 
 def sigmoid(x):
@@ -773,8 +795,15 @@ while run:
                 elif angle < -2 * np.pi:
                     angle = angle + 2 * np.pi
                 timestep = timestep + 1
-                fitness, terminate = fitness_function(count_cleared, distances, collision_count, timestep, v_l, v_r,
-                                                      fitness)
+#                fitness, terminate = fitness_function(count_cleared, distances, collision_count, timestep, v_l, v_r,
+#                                                      fitness)
+#                
+                ## TEST
+                fitness, terminate, discount_past = fitness_function2(past_cleared, count_cleared, distances, collision_count, timestep, v_l, v_r,
+                                      fitness)
+                past_cleared = discount_past + count_cleared
+                
+                ## \TEST
                 #    print(fitness)
                 if (terminate):
                     break
