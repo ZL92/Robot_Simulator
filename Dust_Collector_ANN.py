@@ -50,14 +50,14 @@ w_pressed = False
 s_pressed = False
 tst = False  # Add sensor values text
 
-no_paricles = 300
+no_paricles = 3000
 radius_dust = 2
 particles_cleared = 0
 max_iters_pergen = 200
 prev_v_r = 0
 prev_v_l = 0
 prev_fitness = 0
-
+filename = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 ################## Numbers ###################
 
 n_gen = 30
@@ -343,7 +343,19 @@ def drawspeeds():
     win.blit(right_wheel_text, (x + radius * -np.cos(angle - np.pi / 2), (y + radius * np.sin(angle - np.pi / 2))))
     return ()
 
+def save_weights_per_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop):
+    f = open('weights{}'.format(filename), 'a')
+    f.write('Generation : {}\n'.format(gen))
+    f.write('nw1_pop : \n {}\n nw2_pop : \n {} \n mb1_pop : \n {} \n mb2_pop " \n {} \n fit_pop : \n {} \n'.format(
+        mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop))
+    f.close()
 
+def save_weights_final_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop):
+    f = open('weights{}'.format(filename), 'a')
+    f.write('Generation : {}\n'.format(gen))
+    f.write('nw1_pop : \n {}\n nw2_pop : \n {} \n mb1_pop : \n {} \n mb2_pop " \n {} \n fit_pop : \n {} \n'.format(
+        mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop))
+    f.close()
 ####################### NN ##########################
 def initWeights():
     weight_l1 = np.random.randn(6, 12)
@@ -506,9 +518,6 @@ def ariCrossover(w1_pop, w2_pop, b1_pop, b2_pop, elite_w1, elite_w2, elite_b1, e
 
     # Return population after crossover
     return cw1, cw2, cb1, cb2
-
-
-###############################################################################
 
 
 ################################# Mutation ####################################
@@ -705,7 +714,6 @@ while run:
                     bot_c = Point((x), (y))
 
                 elif (collision_count == 1):
-
                     x, y = collidingMovement(v_r, v_l, currect_center, angle, colliding_walls[0][0],
                                              colliding_walls[0][1])
                     distances = drawSensors()
@@ -755,15 +763,17 @@ while run:
 
         #### Crossover/Mutation
         cw1, cw2, cb1, cb2 = ariCrossover(w1_pop, w2_pop, b1_pop, b2_pop, e_w1, e_w2, e_b1, e_b2, e_indices)
-
         mw1_pop, mw2_pop, mb1_pop, mb2_pop = gausMutation(cw1, cw2, cb1, cb2, e_w1, e_w2, e_b1, e_b2, e_indices)
-
         w1_pop, w2_pop, b1_pop, b2_pop = mw1_pop, mw2_pop, mb1_pop, mb2_pop
 
+
+        # save_weights_per_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
     run = False
 
 run = False
 print("Fitpop", fit_pop)
 ###################################################
 print("Cleared particles: {}".format(particles_cleared))
+
+save_weights_final_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
 pygame.quit()
