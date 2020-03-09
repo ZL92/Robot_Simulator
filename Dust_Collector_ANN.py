@@ -60,7 +60,7 @@ prev_fitness = 0
 filename = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 ################## Numbers ###################
 
-n_gen = 5
+n_gen = 1
 n_pop = 10
 
 ##############################################
@@ -117,7 +117,6 @@ def CreateDust(no_paricles, width, height):
     random_coord[:, 0] = random_coord[:, 0] * width
     random_coord[:, 1] = random_coord[:, 1] * height
     return random_coord
-
 
 
 def CalculateDistance(dust_positions, center_bot):
@@ -180,7 +179,7 @@ def plotting_trajectory(gen, trajectory):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot(poly_x, poly_y)
-    ax.plot(trajectory_x, trajectory_y)
+    # ax.plot(trajectory_x, trajectory_y)
     ax.set_xlim(0, w_width)
     ax.set_ylim(0, w_height)
     ax.set_title('Generation : {}'.format(gen))
@@ -644,7 +643,8 @@ line_left = LineString([b4_s, b4_e])
 #Room Initilization (vertices in order)
 room1 = LineString([Point(200, 200), Point(200, w_width-200), Point(w_height-200, w_width-200), Point(w_height-200, 200)])
 room2 = LineString([Point(100, 100), Point(400, 100), Point(w_height-100, 700), Point(300, 500)])
-rooms = {'1' : room1, "2" : room2}
+room3 = LineString([Point(300, 200), Point(300, 600), Point(500, 700), Point(500,100)])
+rooms = {'1' : room1, "2" : room2, '3' : room3}
 
 ################# Define collison lines here #######################
 collision_walls = [
@@ -655,7 +655,7 @@ collision_walls = [
         ]
 
 # experiment_room = rooms[(input('Choose room1 (1) or room2 (2) -(default 1): \n>>') or '1')]
-experiment_room = rooms['1']
+experiment_room = rooms['3']
 collision_room = initilize_room(experiment_room)
 ####################################################################
 
