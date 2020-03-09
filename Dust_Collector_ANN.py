@@ -61,8 +61,8 @@ prev_fitness = 0
 filename = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 ################## Numbers ###################
 
-n_gen = 2
-n_pop = 4
+n_gen = 1
+n_pop = 10
 
 num_runs = 5
 
@@ -93,10 +93,10 @@ def fitness_function(particles_cleared, sensor_distances, collision_count, times
     global prev_v_r, prev_v_l, prev_fitness
     dist_threshold = 10
     terminate = False
-    np_distances = np.asarray(sensor_distances)
+    np_distances = np.asarray(sensor_distances) *180
     np_distances = np.where((np_distances > 10) & (np_distances < 40), 1, 0)
     closer_wall_factor = np.sum(np_distances) / 12
-    fitness += (4 * particles_cleared + 2 * closer_wall_factor - 4 * collision_count) * (abs(v_l + v_r) / (60))
+    fitness += (4 * particles_cleared + 4 * closer_wall_factor - 4 * collision_count) * (abs(v_l + v_r) / (60))
     if (timestep % 30 == 0):
         prev_v_l = v_l
         prev_v_r = v_r
@@ -160,12 +160,15 @@ def create_font(t,s=15,c=(0,0,0), b=False,i=False):
     return text
 
 def plotting_errorbar(y):
-    y_avg = np.mean(y, axis=1)
-    std = np.std(y, axis=1)
+    y_avg = np.mean(y, axis = 1)
+    y_max = np.max(y, axis = 1)
+    std = np.std(y, axis = 1)
     x = np.arange(0, len(y), 1)
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.errorbar(x, y_avg ,yerr=std, linestyle = '--', marker='x')
+    ax.errorbar(x, y_avg ,yerr=std, linestyle = '--', marker='x', label = 'AVG')
+    ax.plot(x, y_max, label = 'MAX')
+    leg = ax.legend()
     ax.set_ylabel('fitness')
     ax.set_xlabel('Generations')
     
@@ -222,7 +225,7 @@ def plotting_trajectory(gen, trajectory):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot(poly_x, poly_y)
-    ax.plot(trajectory_x, trajectory_y)
+    # ax.plot(trajectory_x, trajectory_y)
     ax.set_xlim(0, w_width)
     ax.set_ylim(0, w_height)
     ax.set_title('Generation : {}'.format(gen))
@@ -448,13 +451,14 @@ def save_weights_final_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_
         mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop))
     f.close()
 ####################### NN ##########################
-def initWeights():
-    weight_l1 = np.random.randn(6, 12)
-    weight_l2 = np.random.randn(2, 6)
-    bias = np.random.randn()
-    bias2 = np.random.randn()
+# def initWeights():
+#     weight_l1 = np.random.randn(6, 12)
+#     weight_l2 = np.random.randn(2, 6)
+#     bias = np.random.randn()
+#     bias2 = np.random.randn()
+#
+#     return weight_l1, weight_l2, bias, bias2
 
-    return weight_l1, weight_l2, bias, bias2
 
 
 def feedForward(x, weight_l1, weight_l2, bias, bias2, r1, timestep):
@@ -718,7 +722,8 @@ line_left = LineString([b4_s, b4_e])
 #Room Initilization (vertices in order)
 room1 = LineString([Point(200, 200), Point(200, w_width-200), Point(w_height-200, w_width-200), Point(w_height-200, 200)])
 room2 = LineString([Point(100, 100), Point(400, 100), Point(w_height-100, 700), Point(300, 500)])
-rooms = {'1' : room1, "2" : room2}
+room3 = LineString([Point(300, 200), Point(300, 600), Point(500, 700), Point(500,100)])
+rooms = {'1' : room1, "2" : room2, '3' : room3}
 
 ################# Define collison lines here #######################
 collision_walls = [
@@ -729,7 +734,7 @@ collision_walls = [
         ]
 
 # experiment_room = rooms[(input('Choose room1 (1) or room2 (2) -(default 1): \n>>') or '1')]
-experiment_room = rooms['1']
+experiment_room = rooms['3']
 collision_room = initilize_room(experiment_room)
 ####################################################################
 
@@ -744,17 +749,19 @@ bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
 ################### ------- MAIN LOOP ------- ######################
 np.random.seed(0)
 dust_positions = CreateDust(no_paricles, w_width - walls_thickness, w_height - walls_thickness)
+# dust_positions = []
 timestep = 0
 fitness = 0
+
 w1_pop = np.random.randn(n_pop, 6, 12)
 w2_pop = np.random.randn(n_pop, 2, 6)
 b1_pop = np.random.randn(n_pop, 1)
 b2_pop = np.random.randn(n_pop, 1)
+
 recurrent1 = np.random.randn(6, 1)
 fit_pop = np.empty((0, 1))
 best_size = int(n_pop / 5)
-# print("Weights: ", weights)
-# print("weights0", weights[0])
+
 print(fit_pop)
 
 fitness_per_generation = []
@@ -944,6 +951,160 @@ for run_x in range(num_runs):
     print("RUN: {} out of {} - FINISHED".format(run_x, num_runs))
     run = True
 
+
+                #####
+                distances = np.asarray(distances) / 180
+                t_v, t_r_1, swap = feedForward(np.asarray(distances), w1, w2, b1, b2, recurrent1, t)
+                if swap:
+                    recurrent1 = t_r_1
+                t_v_r, t_v_l = t_v
+                v_r = t_v_r * 30
+                v_l = t_v_l * 30
+
+                if (v_r > 0):
+                    v_r = np.min([v_r, 30])
+                else:
+                    v_r = np.max([v_r, -30])
+                if (v_l > 0):
+                    v_l = np.min([v_l, 30])
+                else:
+                    v_l = np.max([v_l, -30])
+
+                ### Redraw
+                win.fill((BG_COLOR))
+                borders, borders_line = drawWalls()
+                drawRoom(collision_room)
+
+                #### Draw Dust
+                distance_dust = CalculateDistance(dust_positions, (x, y))
+                dust_positions, count_cleared = Clear_Dust(dust_positions, radius, radius_dust, distance_dust)
+                particles_cleared += count_cleared
+                for i in range(len(dust_positions)):
+                    pygame.draw.circle(win, BLACK, (int(dust_positions[i, 0]), int(dust_positions[i, 1])), radius_dust)
+
+                #### Collision stuff ######
+                currect_center = Point(x, y)
+                next_angle, next_x, next_y = ICC_Calculation2(v_r, v_l, radius, angle, x, y)
+                center = Point(next_x, next_y)
+                end_line = Point(next_x + radius * -np.cos(next_angle), y + radius * np.sin(next_angle))
+                collision_count = 0
+                absolute_velocity = (v_r + v_l) / 2
+                colliding_walls = []
+
+                # Detects walls and room
+                for i in range(len(collision_walls)):
+                    if (collisionDetection(currect_center, center, radius, collision_walls[i][0],
+                                           collision_walls[i][1]) == True):
+                        collision_count += 1
+                        colliding_walls.append(collision_walls[i])
+
+                for i in range(len(collision_room)):
+                    if (collisionDetection(currect_center, center, radius, collision_room[i][0],
+                                           collision_room[i][1]) == True):
+                        collision_count += 1
+                        colliding_walls.append(collision_room[i])
+
+                # Movement
+                if (collision_count == 0):
+                    angle, x, y = next_angle, next_x, next_y
+                    distances = drawSensors()
+                    pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+                    bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
+                                                   (bot_c.y + radius * np.sin(
+                                                       angle)))])  # , int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
+                    line = pygame.draw.line(win, YELLOW, (x, y),
+                                            (x + radius * -np.cos(angle), (y + radius * np.sin(angle))),
+                                            int(radius / 10))
+                    drawspeeds()
+                    bot_c = Point((x), (y))
+
+                elif (collision_count == 1):
+                    x, y = collidingMovement(v_r, v_l, currect_center, angle, colliding_walls[0][0],
+                                             colliding_walls[0][1])
+                    distances = drawSensors()
+                    pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+                    bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
+                                                   (bot_c.y + radius * np.sin(
+                                                       angle)))])  # , int(radius/10))    pygame.draw.line(win, YELLOW, bot_line.bounds[0:2], bot_line.bounds[2:4], int(radius/10))         # surface to draw on, color, s_pt, e_pt, width
+                    line = pygame.draw.line(win, YELLOW, (x, y),
+                                            (x + radius * -np.cos(angle), (y + radius * np.sin(angle))),
+                                            int(radius / 10))
+                    drawspeeds()
+                    bot_c = Point((x), (y))
+
+                else:
+                    #Movement when detecting two walls, to be investigated. For now stopping.
+
+                    distances = drawSensors()
+                    pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
+                    line = pygame.draw.line(win, YELLOW, (x, y),
+                                            (x + radius * -np.cos(angle), (y + radius * np.sin(angle))),
+                                            int(radius / 10))
+                    drawspeeds()
+                    bot_c = Point((x), (y))
+
+                ###########################
+
+                trajectory.append(bot_c)
+
+                # Update / Call next tick #
+                if angle > 2 * np.pi:
+                    angle = angle - 2 * np.pi
+                elif angle < -2 * np.pi:
+                    angle = angle + 2 * np.pi
+                timestep = timestep + 1
+                fitness, terminate = fitness_function(count_cleared, distances, collision_count, timestep, v_l, v_r,
+                                                      fitness)
+                #    print(fitness)
+                if (terminate):
+                    break
+                pygame.display.update()
+
+            print(fitness)
+            dust_positions = CreateDust(no_paricles, w_width - walls_thickness, w_height - walls_thickness)
+            # dust_positions = []
+            fit_pop = np.append(fit_pop, fitness)
+            fitness = 0
+
+        #### Plotting trajectory ####
+        plotting_trajectory(gen, trajectory)
+
+        #### Selection ####
+        print("Fitness pop array: ", fit_pop)
+        e_w1, e_w2, e_b1, e_b2, e_indices = TruncSelect(n_pop, keep_n, fit_pop, w1_pop, w2_pop, b1_pop, b2_pop)
+        #### Reproduction
+
+        #### Crossover/Mutation
+        cw1, cw2, cb1, cb2 = ariCrossover(w1_pop, w2_pop, b1_pop, b2_pop, e_w1, e_w2, e_b1, e_b2, e_indices)
+        mw1_pop, mw2_pop, mb1_pop, mb2_pop = gausMutation(cw1, cw2, cb1, cb2, e_w1, e_w2, e_b1, e_b2, e_indices)
+        w1_pop, w2_pop, b1_pop, b2_pop = mw1_pop, mw2_pop, mb1_pop, mb2_pop
+        fitness_per_generation.append(fit_pop)
+
+        testdiv = 0
+        for k in range(len(w1_pop[0])):
+            for i in range(n_pop):
+                for j in range(n_pop):
+                    testdiv += pdist([w1_pop[i][k], w1_pop[j][k]])
+        for k in range(len(w2_pop[0])):
+            for i in range(n_pop):
+                for j in range(n_pop):
+                    testdiv += pdist([w2_pop[i][k], w2_pop[j][k]])
+
+        testdiv += np.sum(pdist(b1_pop))
+        testdiv += np.sum(pdist(b2_pop))
+        # print(testdiv)
+
+        diversity_per_generation.append(testdiv)
+
+        ###### Saves weights to a file #####
+        if gen % 10 == 0:
+            save_weights_per_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
+    run = False
+
+run = False
+print("Fitpop", fit_pop)
+###################################################
+print("Cleared particles: {}".format(particles_cleared))
 
 #### Plotting ####
 plotting_errorbar(fitness_per_generation)
