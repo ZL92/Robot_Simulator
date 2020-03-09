@@ -60,7 +60,7 @@ prev_fitness = 0
 filename = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 ################## Numbers ###################
 
-n_gen = 3
+n_gen = 5
 n_pop = 10
 
 ##############################################
@@ -90,10 +90,10 @@ def fitness_function(particles_cleared, sensor_distances, collision_count, times
     global prev_v_r, prev_v_l, prev_fitness
     dist_threshold = 10
     terminate = False
-    np_distances = np.asarray(sensor_distances)
+    np_distances = np.asarray(sensor_distances) *180
     np_distances = np.where((np_distances > 10) & (np_distances < 40), 1, 0)
     closer_wall_factor = np.sum(np_distances) / 12
-    fitness += (4 * particles_cleared + 2 * closer_wall_factor - 4 * collision_count) * (abs(v_l + v_r) / (60))
+    fitness += (4 * particles_cleared + 4 * closer_wall_factor - 4 * collision_count) * (abs(v_l + v_r) / (60))
     if (timestep % 30 == 0):
         prev_v_l = v_l
         prev_v_r = v_r
@@ -119,6 +119,7 @@ def CreateDust(no_paricles, width, height):
     return random_coord
 
 
+
 def CalculateDistance(dust_positions, center_bot):
     return np.array([distance(dust_position, center_bot) for dust_position in dust_positions])
 
@@ -137,12 +138,15 @@ def create_font(t,s=15,c=(0,0,0), b=False,i=False):
     return text
 
 def plotting_errorbar(y):
-    y_avg = np.mean(y, axis=1)
-    std = np.std(y, axis=1)
+    y_avg = np.mean(y, axis = 1)
+    y_max = np.max(y, axis = 1)
+    std = np.std(y, axis = 1)
     x = np.arange(0, len(y), 1)
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.errorbar(x, y_avg ,yerr=std, linestyle = '--', marker='x')
+    ax.errorbar(x, y_avg ,yerr=std, linestyle = '--', marker='x', label = 'AVG')
+    ax.plot(x, y_max, label = 'MAX')
+    leg = ax.legend()
     ax.set_ylabel('fitness')
     ax.set_xlabel('Generations')
     plt.show()
@@ -402,13 +406,14 @@ def save_weights_final_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_
         mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop))
     f.close()
 ####################### NN ##########################
-def initWeights():
-    weight_l1 = np.random.randn(6, 12)
-    weight_l2 = np.random.randn(2, 6)
-    bias = np.random.randn()
-    bias2 = np.random.randn()
+# def initWeights():
+#     weight_l1 = np.random.randn(6, 12)
+#     weight_l2 = np.random.randn(2, 6)
+#     bias = np.random.randn()
+#     bias2 = np.random.randn()
+#
+#     return weight_l1, weight_l2, bias, bias2
 
-    return weight_l1, weight_l2, bias, bias2
 
 
 def feedForward(x, weight_l1, weight_l2, bias, bias2, r1, timestep):
@@ -665,17 +670,19 @@ bot_line = LineString([bot_c, (bot_c.x + radius * -np.cos(angle),
 ################### ------- MAIN LOOP ------- ######################
 np.random.seed(0)
 dust_positions = CreateDust(no_paricles, w_width - walls_thickness, w_height - walls_thickness)
+# dust_positions = []
 timestep = 0
 fitness = 0
+
 w1_pop = np.random.randn(n_pop, 6, 12)
 w2_pop = np.random.randn(n_pop, 2, 6)
 b1_pop = np.random.randn(n_pop, 1)
 b2_pop = np.random.randn(n_pop, 1)
+
 recurrent1 = np.random.randn(6, 1)
 fit_pop = np.empty((0, 1))
 best_size = int(n_pop / 5)
-# print("Weights: ", weights)
-# print("weights0", weights[0])
+
 print(fit_pop)
 
 fitness_per_generation = []
@@ -808,6 +815,7 @@ while run:
 
             print(fitness)
             dust_positions = CreateDust(no_paricles, w_width - walls_thickness, w_height - walls_thickness)
+            # dust_positions = []
             fit_pop = np.append(fit_pop, fitness)
             fitness = 0
 
@@ -837,12 +845,13 @@ while run:
 
         testdiv += np.sum(pdist(b1_pop))
         testdiv += np.sum(pdist(b2_pop))
-        print(testdiv)
+        # print(testdiv)
 
         diversity_per_generation.append(testdiv)
 
-        # ###### Saves weights to a file #####
-        # save_weights_per_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
+        ###### Saves weights to a file #####
+        if gen % 10 == 0:
+            save_weights_per_generation(filename, gen, mw1_pop, mw2_pop, mb1_pop, mb2_pop, fit_pop)
     run = False
 
 run = False
