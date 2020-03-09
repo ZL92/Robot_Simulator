@@ -129,7 +129,7 @@ def fitness_function2(past_cleared, particles_cleared, sensor_distances, collisi
         terminate = True
     return fitness, terminate, discount_past
 
-############ TO DOOOOOO#####
+############ TO DOOOOOO########
 def fitness_function3(past_cleared, particles_cleared, sensor_distances, collision_count, timestep, v_l, v_r, fitness):
     global prev_v_r, prev_v_l, prev_fitness
     dist_threshold = 10
