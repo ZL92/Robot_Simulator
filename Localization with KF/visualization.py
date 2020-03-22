@@ -16,36 +16,42 @@ import matplotlib.pyplot as plt
 from pygame import Color
 from pygame.math import Vector2
 from shapely.geometry import *
-from utils import *
 from pygame.locals import *
 from copy import copy, deepcopy
 
 #############################
  #Visualization functions
 #############################
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = Color("green")
+YELLOW = (255, 255, 0)
+SENS_RED = (255, 0, 0)
+BG_COLOR = Color("lightblue")
 
 def create_font(t,s=15,c=(0,0,0), b=False,i=False):
     font = pygame.font.SysFont("Arial", s, bold=b, italic=i)
     text = font.render(t, True, c)
     return text
 
-def draw_robot():
-    #TODO
+def draw_robot(x,y,angle,radius,win):
+	pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
 
-def draw_maze():
-    #TODO
+# def draw_maze():
+#     #TODO
 
-def draw_features():
-    #TODO
+# def draw_features():
+#     #TODO
 
-def draw_sensors():
-    # TODO
+# def draw_sensors():
+#     # TODO
 
-def draw_speed():
-    #TODO
+# def draw_speed():
+#     #TODO
 
-def draw_trajectory():
-    #TODO
+# def draw_trajectory():
+#     #TODO
 
 
 
