@@ -35,8 +35,6 @@ def create_font(t,s=15,c=(0,0,0), b=False,i=False):
     text = font.render(t, True, c)
     return text
 
-def draw_robot(x,y,angle,radius,win):
-	pygame.draw.circle(win, GREEN, (int(x), int(y)), radius)
 
 # def draw_maze():
 #     #TODO
