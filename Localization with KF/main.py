@@ -27,7 +27,7 @@ def main():
 
 		v, w = controller.update_speed()
 		state = controller.update_pos()
-		bot_c = Point(state[0], state[1])
+		bot_c = Point(state[0], 500 -state[1])
 		angle = state[2]
 
 

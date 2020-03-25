@@ -29,11 +29,11 @@ class Motion(object):
     def update_speed(self): # Checked
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                if event.key == ord("w"):
+                if event.key == ord("s"):
                     self.v += 0.1
                 if event.key == ord("a"):
                     self.w -= 0.01
-                if event.key == ord("s"):
+                if event.key == ord("w"):
                     self.v -= 0.1
                 if event.key == ord("d"):
                     self.w += 0.01
@@ -60,5 +60,5 @@ class Motion(object):
             self.state[2] = self.state[2] - 2 * np.pi
         elif self.state[2] < -2 * np.pi:
             self.state[2] = self.state[2] + 2 * np.pi
-        # print(self.state)
+        print(self.state)
         return self.state

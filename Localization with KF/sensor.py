@@ -7,7 +7,7 @@ Estimate distance and bearing(direction) of observed feature
 import maze
 from shapely.geometry import *
 import numpy as np
-from functions import *
+#from functions import *
 import pygame
 from visualization import *
 
