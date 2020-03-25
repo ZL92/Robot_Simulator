@@ -15,8 +15,9 @@ def main():
 	angle = 0
 	controller = Motion(bot_c, angle)
 	sensor_model = Sensor()
+
 	while run:
-		win.fill((173, 216, 230))
+		win.fill((173, 216, 230)) # Refill to update screen
 		maze.draw_borders(win)
 		maze.draw_walls(win)
 		sensor_model.initilize_sensors(bot_c, angle)
@@ -29,6 +30,6 @@ def main():
 		bot_c = Point(state[0], state[1])
 		angle = state[2]
 
-	# 	# v,w = controller.update_speed()
+
 
 main()

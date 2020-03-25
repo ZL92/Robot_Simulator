@@ -15,7 +15,7 @@ from visualization import *
 ########### Class ###########
 class Sensor(object):
     nr_sensors = 12
-    sensor_range =180
+    sensor_range = 200
 
     def __init__(self):
         self.sensors_lines = [None] * 12
@@ -30,13 +30,10 @@ class Sensor(object):
                 )
                 )
 
-
     def draw_sensors(self, win, maze, bot_c, radius, angle):
-
         for i in range(len(self.sensors_lines)):
             det, dist, inter_pt = sensing(maze, radius, self.sensors_lines[i], self.sensor_range, bot_c)
             self.sensors_distance[i] = dist
-
             if det:
                 pygame.draw.line(win, pygame.Color("darkgreen"), (int(bot_c.x), int(bot_c.y)), (int(inter_pt.x), int(inter_pt.y)), 2)
                 txt = create_font(str(round(dist, 0)))
@@ -57,21 +54,35 @@ def distance(p1, p2):
 
 
 def sensing(maze, radius, sensors_line, sensor_range, bot_c):
-    detect = False
-    dist = sensor_range - radius
-    inter_pt = None
+    # detect = False
+    # dist = sensor_range - radius
+    detect_list = [False] * len(maze)
+    inter_pt_list = np.array([None] * len(maze))
+    detected_dist_array = np.array([sensor_range - radius] * len(maze))
+
     for maze_i in maze:
+        dist = sensor_range - radius
         for n in range(len(maze_i)-1):
             test = LineString([(int(maze_i[n].x), int(maze_i[n].y)),
                                (int(maze_i[n+1].x), int(maze_i[n+1].y))]).intersection(sensors_line)
             if not (test.is_empty):
-                detect = True
-                inter_pt = test
-                dist = np.min([dist, (distance(bot_c.coords[0], inter_pt.coords[0]) - radius)])
-            if detect:
+                detect_list[maze.index(maze_i)] = True
+                inter_pt_list[maze.index(maze_i)] = test
+                dist = np.min([dist, (distance(bot_c.coords[0], test.coords[0]) - radius)])
                 break
-        if detect:
-            break
+            # if detect_list[maze.index(maze_i)]:
+            #     #One sensor detects only one wall in maze_i.
+            #     break
+        detected_dist_array[maze.index(maze_i)] = dist
 
-
+    if any(detect_list): #if anyone is true
+        dist = detected_dist_array[np.where(detect_list)[0]].min()
+        inter_pt = inter_pt_list[np.where(detect_list)[0]][detected_dist_array[np.where(detect_list)[0]].argmin()]
+        # dist = np.min(detected_dist_array[np.nonzero(detected_dist_array)])
+        # inter_pt = inter_pt_list[np.argmin(detected_dist_array[np.nonzero(detected_dist_array)])]
+        detect = True
+    else:
+        dist = sensor_range - radius
+        inter_pt = None
+        detect = False
     return detect, dist, inter_pt

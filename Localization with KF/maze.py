@@ -13,13 +13,13 @@ from shapely.geometry import *
 #### Variables ####
 map_width = 500
 map_height = 500
-borders = [Point(0, 0), Point(0, map_width), Point(map_height, map_width), Point(map_height, 0), Point(0, 0)]
-wall1 = [Point(0, 150), Point(350, 150), Point(350, 400), Point (250, 400)]
-wall2 = [Point(150, map_height), Point(150, 300), Point (280, 300)]
+borders = [Point(20, 20), Point(20, map_width-20), Point(map_height-20, map_width-20), Point(map_height-20, 20), Point(20, 20)]
+wall1 = [Point(20, 150), Point(350, 150), Point(350, 400), Point (250, 400)]
+wall2 = [Point(150, map_height-20), Point(150, 300), Point (280, 300)]
 maze = [borders, wall1, wall2]
-features = [Point(0, 0), Point(0, map_width), Point(map_height, map_width), Point(map_height, 0),
-            Point(0, 150), Point(350, 150), Point(350, 300), Point (250, 300),
-            Point(150, map_height), Point(150, 250), Point (300, 250)]
+features = [Point(20, 20), Point(20, map_width-20), Point(map_height-20, map_width-20), Point(map_height-20, 20),
+            Point(20, 150), Point(350, 150), Point(350, 300), Point (250, 300),
+            Point(150, map_height-10), Point(150, 250), Point (300, 250)]
 
 def draw_borders(win):
     for i in range(len(borders) - 1):
@@ -38,6 +38,7 @@ def draw_walls(win):
 
 
 def update_screen(win, bot_c, angle, radius, deltaT=30):
+
     ### Draw robot ###
     pygame.draw.circle(win, (0, 255, 0), (int(bot_c.x), int(bot_c.y)), radius)
     pygame.draw.line(win, (255, 255, 0), (int(bot_c.x), int(bot_c.y)),
