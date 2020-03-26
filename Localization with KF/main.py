@@ -37,15 +37,15 @@ def main():
 		if cnt > 2:
 #				print("{} Beacons detected, List: {}\nDist List: {}".format(cnt, detected_list, dist_list))
                 
-				C = (dist_list[0]**2-dist_list[1]**2 - detected_list[0][0]**2 + detected_list[1][0]**2 - detected_list[0][1]**2 + detected_list[1][1]**2)
-				F = (dist_list[1]**2-dist_list[2]**2 - detected_list[1][0]**2 + detected_list[2][0]**2 - detected_list[1][1]**2 + detected_list[2][1]**2)
-				A = (-2*detected_list[0][0] + 2*detected_list[1][0])
-				B = (-2*detected_list[0][1] + 2*detected_list[1][1])
-				D = (-2*detected_list[1][0] + 2*detected_list[2][0])
-				E = (-2*detected_list[1][1] + 2*detected_list[2][1])
+				C1 = (dist_list[0]**2-dist_list[1]**2 - detected_list[0][0]**2 + detected_list[1][0]**2 - detected_list[0][1]**2 + detected_list[1][1]**2)
+				F1 = (dist_list[1]**2-dist_list[2]**2 - detected_list[1][0]**2 + detected_list[2][0]**2 - detected_list[1][1]**2 + detected_list[2][1]**2)
+				A1 = (-2*detected_list[0][0] + 2*detected_list[1][0])
+				B1 = (-2*detected_list[0][1] + 2*detected_list[1][1])
+				D1 = (-2*detected_list[1][0] + 2*detected_list[2][0])
+				E1 = (-2*detected_list[1][1] + 2*detected_list[2][1])
                 
-				new_x = ((C*E) - (F*B)) / ((E*A) - (B*D))
-				new_y = 500 - (((C*D) - (A*F)) / ((B*D) - (A*E)))
+				new_x = ((C1*E1) - (F1*B1)) / ((E1*A1) - (B1*D1))
+				new_y = 500 - (((C1*D1) - (A1*F1)) / ((B1*D1) - (A1*E1)))
 #				print("NEW X/Y = ", (new_x, new_y))
                 
 #		print("Lenght of det list: {}\nLength of dist list: {}".format(len(detected_list), len(dist_list)))
