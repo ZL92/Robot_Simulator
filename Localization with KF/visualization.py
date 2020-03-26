@@ -36,20 +36,5 @@ def create_font(t,s=15,c=(0,0,0), b=False,i=False):
     return text
 
 
-# def draw_maze():
-#     #TODO
-
-# def draw_features():
-#     #TODO
-
-# def draw_sensors():
-#     # TODO
-
-# def draw_speed():
-#     #TODO
-
-# def draw_trajectory():
-#     #TODO
-
 
 
