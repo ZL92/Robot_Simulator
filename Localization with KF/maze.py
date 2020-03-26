@@ -12,14 +12,15 @@ from shapely.geometry import *
 
 #### Variables ####
 map_width = 500
-map_height = 500
-borders = [Point(20, 20), Point(20, map_width-20), Point(map_height-20, map_width-20), Point(map_height-20, 20), Point(20, 20)]
-wall1 = [Point(20, 150), Point(350, 150), Point(350, 400), Point (250, 400)]
-wall2 = [Point(150, map_height-20), Point(150, 300), Point (280, 300)]
-maze = [borders, wall1, wall2]
-features = [Point(20, 20), Point(20, map_width-20), Point(map_height-20, map_width-20), Point(map_height-20, 20),
-            Point(20, 150), Point(350, 150), Point(350, 400), Point (250, 400),
-            Point(150, map_height-20), Point(150, 300), Point (280, 300)]
+map_height = 600
+borders = [Point(20, 20), Point(20, map_height-20), Point(map_width-20, map_height-20), Point(map_width-20, 20), Point(20, 20)]
+wall1 = [Point(20, 100), Point(map_width-150, 100)]
+wall2 = [Point(map_width-20, 200), Point(200, 200), Point(200, map_height-120)]
+wall3 = [Point(map_width-150, map_height-20), Point(map_width-150, 300)]
+maze = [borders, wall1, wall2, wall3]
+features = []
+[[features.append(j) for j in i] for i in maze]
+
 testfeatures = [Point(20,map_height-20)]
 beacons = [features]
 
@@ -37,7 +38,10 @@ def draw_walls(win):
     for i in range(len(wall2)-1):
         pygame.draw.line(win, (255, 0, 0), (int(wall2[i].x), int(wall2[i].y)),
                          (int(wall2[i + 1].x), int(wall2[i + 1].y)), 2)
-        
+    #### Wall3 ####
+    for i in range(len(wall3)-1):
+        pygame.draw.line(win, (255, 0, 0), (int(wall3[i].x), int(wall3[i].y)),
+                         (int(wall3[i + 1].x), int(wall3[i + 1].y)), 2)
     
 def draw_beacons(win):
     for i in range(len(features)):
