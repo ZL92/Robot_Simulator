@@ -19,10 +19,10 @@ def main():
 	angle = 0
 	controller = Motion(bot_c, angle)
 	sensor_model = Sensor()
-
+	correction = False
 	A= np.identity(3)
 	R = np.array([[0,0,0],[0,0,0],[0,0,0]])
-	cov = np.array([[0,0,0],[0,0,0],[0,0,0]])
+	cov = np.array([[0.1,0,0],[0,0.1,0],[0,0,0.1]])
 	mu = np.array([50,50,0])
 	pose_tracker = Pose()
 
@@ -47,6 +47,8 @@ def main():
                 
 				new_x = ((C1*E1) - (F1*B1)) / ((E1*A1) - (B1*D1))
 				new_y = 500 - (((C1*D1) - (A1*F1)) / ((B1*D1) - (A1*E1)))
+				correction = True
+				#print(new_x,new_y,state[0],state[1])
 #				print("NEW X/Y = ", (new_x, new_y))
                 
 #		print("Lenght of det list: {}\nLength of dist list: {}".format(len(detected_list), len(dist_list)))
@@ -61,25 +63,28 @@ def main():
         
         
         #####################
-        else:
-			i = 0
-			while i < len(predict_trail)-1:
-				maze.draw_predict_trail(win,i,predict_trail[i],predict_trail[i+1],1)
-				i+=1
 
-			maze.update_screen(win, bot_c, angle=angle, radius=controller.radius)
 
-			v, w = controller.update_speed()
-			state,B = controller.update_pos()
-			u = np.array([v,w]).T
+		v, w = controller.update_speed()
+		state,B = controller.update_pos()
+		u = np.array([v,w]).T
 			#mu = state.T + np.random.normal(0,1,3).T
-			mu_bar,cov_bar = pose_tracker.prediction(A,B,u,R,mu,cov)
-			mu,cov = mu_bar,cov_bar
-			predicted_state = [[int(mu_bar[0]),int(500-mu_bar[1])]]
-			predict_trail += predicted_state
-			bot_c = Point(state[0], 500 -state[1])
-			angle = state[2]
-
-
+		i = 0
+		mu_bar,cov_bar = pose_tracker.prediction(A,B,u,R,mu,cov)
+		mu,cov = mu_bar,cov_bar
+		if(correction):
+			Z = np.array([new_x,new_y,state[2]])
+			C = np.identity(3)
+			Q = np.array([[0.01,0,0],[0,0.01,0],[0,0,0.01]])
+			mu,cov = pose_tracker.correction(mu_bar,cov_bar,C,Q,Z.T)
+		predicted_state = [[int(mu[0]),int(500-mu[1])]]
+		predict_trail += predicted_state
+		while i < len(predict_trail)-1:
+			maze.draw_predict_trail(win,i,predict_trail[i],predict_trail[i+1],1)
+			i+=1
+		bot_c = Point(state[0], 500 -state[1])
+		angle = state[2]
+		correction = False
+		maze.update_screen(win, bot_c, angle=angle, radius=controller.radius)
 
 main()

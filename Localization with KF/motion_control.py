@@ -60,5 +60,4 @@ class Motion(object):
             self.state[2] = self.state[2] - 2 * np.pi
         elif self.state[2] < -2 * np.pi:
             self.state[2] = self.state[2] + 2 * np.pi
-        print(self.state)
         return self.state, self.movement_matrix
