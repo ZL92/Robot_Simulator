@@ -22,11 +22,14 @@ def main():
 		maze.draw_walls(win)
 		maze.draw_beacons(win)
 		sensor_model.initilize_sensors(bot_c, angle)
-		cnt, detected_list = sensor_model.draw_sensors(win, maze.beacons, bot_c, controller.radius, angle)
+		cnt, detected_list, dist_list = sensor_model.draw_sensors(win, maze.beacons, bot_c, controller.radius, angle)
         
 		if cnt > 2:
-				print("{} Beacons detected, List: {}".format(cnt, detected_list))
+				print("{} Beacons detected, List: {}\nDist List: {}".format(cnt, detected_list, dist_list))
 
+        
+        
+        
 		maze.update_screen(win, bot_c, angle=angle, radius=controller.radius)
 
 		v, w = controller.update_speed()

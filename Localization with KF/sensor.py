@@ -41,6 +41,7 @@ class Sensor(object):
         
         count_det = 0
         detected_list = []
+        dist_list = []
         
         for i in range(len(self.sensors_lines)):
             det, dist, inter_pt = sensing_beacons(beacon_list, radius, self.sensors_lines[i], self.sensor_range, bot_c)
@@ -52,9 +53,10 @@ class Sensor(object):
                 if (inter_pt.x, inter_pt.y) not in detected_list:
                     count_det += 1
                     detected_list.append((inter_pt.x, inter_pt.y))
+                    dist_list.append(dist)                    
             else:
                 pass                
-        return count_det, detected_list
+        return count_det, detected_list, dist_list
 
 
 ########### functions ###########
@@ -79,7 +81,7 @@ def sensing_beacons(beacon_list, radius, sensors_line, sensor_range, bot_c):
         if test:
             detect = True
             inter_pt = beacon
-            dist = distance(bot_c.coords[0], (beacon.x, beacon.y)) - radius
+            dist = distance(bot_c.coords[0], (beacon.x, beacon.y))
     return detect, dist, inter_pt
 
 
