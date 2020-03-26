@@ -20,8 +20,12 @@ def main():
 		win.fill((173, 216, 230)) # Refill to update screen
 		maze.draw_borders(win)
 		maze.draw_walls(win)
+		maze.draw_beacons(win)
 		sensor_model.initilize_sensors(bot_c, angle)
-		sensor_model.draw_sensors(win, maze.maze, bot_c, controller.radius, angle)
+		cnt, detected_list = sensor_model.draw_sensors(win, maze.beacons, bot_c, controller.radius, angle)
+        
+		if cnt > 2:
+				print("{} Beacons detected, List: {}".format(cnt, detected_list))
 
 		maze.update_screen(win, bot_c, angle=angle, radius=controller.radius)
 

@@ -18,8 +18,10 @@ wall1 = [Point(20, 150), Point(350, 150), Point(350, 400), Point (250, 400)]
 wall2 = [Point(150, map_height-20), Point(150, 300), Point (280, 300)]
 maze = [borders, wall1, wall2]
 features = [Point(20, 20), Point(20, map_width-20), Point(map_height-20, map_width-20), Point(map_height-20, 20),
-            Point(20, 150), Point(350, 150), Point(350, 300), Point (250, 300),
-            Point(150, map_height-10), Point(150, 250), Point (300, 250)]
+            Point(20, 150), Point(350, 150), Point(350, 400), Point (250, 400),
+            Point(150, map_height-20), Point(150, 300), Point (280, 300)]
+testfeatures = [Point(20,map_height-20)]
+beacons = [features]
 
 def draw_borders(win):
     for i in range(len(borders) - 1):
@@ -35,6 +37,11 @@ def draw_walls(win):
     for i in range(len(wall2)-1):
         pygame.draw.line(win, (255, 0, 0), (int(wall2[i].x), int(wall2[i].y)),
                          (int(wall2[i + 1].x), int(wall2[i + 1].y)), 2)
+        
+    
+def draw_beacons(win):
+    for i in range(len(features)):
+        pygame.draw.circle(win, (0,140,140), (int(features[i].x), int(features[i].y)), 5)
 
 
 def update_screen(win, bot_c, angle, radius, deltaT=30):

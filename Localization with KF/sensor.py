@@ -4,7 +4,7 @@ Limited sensor range
 Estimate distance and bearing(direction) of observed feature
 '''
 
-import maze
+#import maze
 from shapely.geometry import *
 import numpy as np
 #from functions import *
@@ -14,13 +14,13 @@ from visualization import *
 
 ########### Class ###########
 class Sensor(object):
-    nr_sensors = 12
-    sensor_range = 200
+    nr_sensors = 360
+    sensor_range = 100
 
     def __init__(self):
-        self.sensors_lines = [None] * 12
+        self.sensors_lines = [None] * self.nr_sensors
         self.sensors_bearing = []
-        self.sensors_distance = [None] * 12
+        self.sensors_distance = [None] * self.nr_sensors
 
     def initilize_sensors(self, bot_c, angle):
         for i in range(self.nr_sensors):
@@ -30,27 +30,57 @@ class Sensor(object):
                 )
                 )
 
-    def draw_sensors(self, win, maze, bot_c, radius, angle):
+    def draw_sensors(self, win, beacon_list, bot_c, radius, angle):
+        """
+        :win: Active window, where to draw
+        :beacon_list: List of Points (shapely), of beacons
+        :bot_c: Coordinates of center of bot
+        :radius: Size / Radius of bot
+        :angle: Angle
+        """
+        
+        count_det = 0
+        detected_list = []
+        
         for i in range(len(self.sensors_lines)):
-            det, dist, inter_pt = sensing(maze, radius, self.sensors_lines[i], self.sensor_range, bot_c)
+            det, dist, inter_pt = sensing_beacons(beacon_list, radius, self.sensors_lines[i], self.sensor_range, bot_c)
             self.sensors_distance[i] = dist
             if det:
                 pygame.draw.line(win, pygame.Color("darkgreen"), (int(bot_c.x), int(bot_c.y)), (int(inter_pt.x), int(inter_pt.y)), 2)
                 txt = create_font(str(round(dist, 0)))
                 win.blit(txt, (inter_pt.x, inter_pt.y))
+                if (inter_pt.x, inter_pt.y) not in detected_list:
+                    count_det += 1
+                    detected_list.append((inter_pt.x, inter_pt.y))
             else:
-                pygame.draw.line(win, (255, 0, 0), (int(bot_c.x), int(bot_c.y)),
-                                 (bot_c.x + self.sensor_range * -np.cos(angle + np.radians(i * 360 / self.nr_sensors)),
-                                  (bot_c.y + self.sensor_range * np.sin(angle + np.radians(i * 360 / self.nr_sensors)))))
-                txt = create_font(str(round(dist, 0)))
-                win.blit(txt, (bot_c.x + self.sensor_range * -np.cos(angle + np.radians(i * 360 / self.nr_sensors)),
-                               (bot_c.y + self.sensor_range * np.sin(angle + np.radians(i * 360 / self.nr_sensors)))))
+                pass                
+        return count_det, detected_list
 
 
 ########### functions ###########
 
 def distance(p1, p2):
     return math.sqrt(((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2))
+
+
+def sensing_beacons(beacon_list, radius, sensors_line, sensor_range, bot_c):
+    """
+    
+    :returns: detect (Bool), dist (int/float), inter_pt (Point)
+    """
+    detect = False
+    inter_pt = None
+    dist = sensor_range - radius
+    
+    for beacon in beacon_list[0]:
+        dist = sensor_range - radius
+        test = sensors_line.distance(beacon) < 0.8
+#        print("test: {}".format(sensors_line.distance(beacon)))
+        if test:
+            detect = True
+            inter_pt = beacon
+            dist = distance(bot_c.coords[0], (beacon.x, beacon.y)) - radius
+    return detect, dist, inter_pt
 
 
 def sensing(maze, radius, sensors_line, sensor_range, bot_c):
