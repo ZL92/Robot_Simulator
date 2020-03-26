@@ -47,7 +47,7 @@ class Sensor(object):
             det, dist, inter_pt = sensing_beacons(beacon_list, radius, self.sensors_lines[i], self.sensor_range, bot_c)
             self.sensors_distance[i] = dist
             if det:
-                pygame.draw.line(win, pygame.Color("darkgreen"), (int(bot_c.x), int(bot_c.y)), (int(inter_pt.x), int(inter_pt.y)), 2)
+                pygame.draw.line(win, (140, 74, 240), (int(bot_c.x), int(bot_c.y)), (int(inter_pt.x), int(inter_pt.y)), 2)
                 txt = create_font(str(round(dist, 0)))
                 win.blit(txt, (inter_pt.x, inter_pt.y))
                 if (inter_pt.x, inter_pt.y) not in detected_list:
@@ -72,16 +72,19 @@ def sensing_beacons(beacon_list, radius, sensors_line, sensor_range, bot_c):
     """
     detect = False
     inter_pt = None
-    dist = sensor_range - radius
+    dist = None
     
     for beacon in beacon_list[0]:
-        dist = sensor_range - radius
+#        dist = sensor_range - radius
         test = sensors_line.distance(beacon) < 0.8
 #        print("test: {}".format(sensors_line.distance(beacon)))
         if test:
             detect = True
             inter_pt = beacon
-            dist = distance(bot_c.coords[0], (beacon.x, beacon.y))
+#            dist = distance(bot_c.coords[0], (beacon.x, beacon.y))
+            dist = bot_c.distance(beacon)
+            
+#    print("Distance : ",dist)
     return detect, dist, inter_pt
 
 
