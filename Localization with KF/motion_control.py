@@ -53,7 +53,7 @@ class Motion(object):
                                         [self.deltaT * np.sin(self.state[2]), 0],
                                          [0, self.deltaT]])
         self.movement_vector = np.array([self.v, self.w])
-        self.state += np.dot(self.movement_matrix, self.movement_vector.T).T
+        self.state += np.dot(self.movement_matrix, self.movement_vector.T).T 
 
         #print(state[2]) #state[2] is correct
         if self.state[2] > 2 * np.pi:

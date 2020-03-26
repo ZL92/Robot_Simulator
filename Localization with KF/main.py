@@ -21,8 +21,9 @@ def main():
 	sensor_model = Sensor()
 
 	A= np.identity(3)
-	R = np.array([[100,0,0],[0,100,0],[0,0,100]])
-	cov = np.array([[100000000,0,0],[0,1000000000,0],[0,0,100000000]])
+	R = np.array([[0,0,0],[0,0,0],[0,0,0]])
+	cov = np.array([[0,0,0],[0,0,0],[0,0,0]])
+	mu = np.array([50,50,0])
 	pose_tracker = Pose()
 
 	while run:
@@ -60,23 +61,24 @@ def main():
         
         
         #####################
-        
-		i = 0
-		while i < len(predict_trail)-1:
-			maze.draw_predict_trail(win,i,predict_trail[i],predict_trail[i+1],1)
-			i+=1
+        else:
+			i = 0
+			while i < len(predict_trail)-1:
+				maze.draw_predict_trail(win,i,predict_trail[i],predict_trail[i+1],1)
+				i+=1
 
-		maze.update_screen(win, bot_c, angle=angle, radius=controller.radius)
+			maze.update_screen(win, bot_c, angle=angle, radius=controller.radius)
 
-		v, w = controller.update_speed()
-		state,B = controller.update_pos()
-		u = np.array([v,w]).T
-		mu = state.T
-		mu_bar,cov_bar = pose_tracker.prediction(A,B,u,R,mu,cov)
-		predicted_state = [[int(mu_bar[0]),int(500-mu_bar[1])]]
-		predict_trail += predicted_state
-		bot_c = Point(state[0], 500 -state[1])
-		angle = state[2]
+			v, w = controller.update_speed()
+			state,B = controller.update_pos()
+			u = np.array([v,w]).T
+			#mu = state.T + np.random.normal(0,1,3).T
+			mu_bar,cov_bar = pose_tracker.prediction(A,B,u,R,mu,cov)
+			mu,cov = mu_bar,cov_bar
+			predicted_state = [[int(mu_bar[0]),int(500-mu_bar[1])]]
+			predict_trail += predicted_state
+			bot_c = Point(state[0], 500 -state[1])
+			angle = state[2]
 
 
 

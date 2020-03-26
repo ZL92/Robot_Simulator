@@ -8,6 +8,6 @@ class Pose(object):
 	def __init__(self):
 			pass
 	def prediction(self,A,B,u,R,mu,cov):
-		mu_bar = np.dot(A,mu) + np.dot(B,u)
+		mu_bar = np.dot(A,mu) + np.dot(B,u) + np.random.normal(0,1,3)
 		cov_bar = np.dot(np.dot(A,cov),A.T) + R
 		return mu_bar,cov_bar
