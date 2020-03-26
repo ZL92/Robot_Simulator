@@ -44,7 +44,7 @@ class Motion(object):
                 pygame.quit()
                 exit()
 
-        self.update_pos()
+#        self.update_pos()
         # self.game_map.update_screen(self.state[0],self.state[1],self.state[2],self.radius,self.game_map.win,self.deltaT)
         return self.v, self.w
 
@@ -61,4 +61,4 @@ class Motion(object):
         elif self.state[2] < -2 * np.pi:
             self.state[2] = self.state[2] + 2 * np.pi
         print(self.state)
-        return self.state
+        return self.state, self.movement_matrix

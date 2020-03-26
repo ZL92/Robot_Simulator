@@ -53,6 +53,10 @@ def update_screen(win, bot_c, angle, radius, deltaT=30):
                      int(radius / 10))
     pygame.display.update()
     pygame.time.delay(deltaT)
+    
+    
+def draw_predict_trail(win,index,start,end,width):
+    pygame.draw.line(win, (0,0,0),start,end,width)
 
 def quit_screen(): #TOBE TEST
     for event in pygame.event.get():
