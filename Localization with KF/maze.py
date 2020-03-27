@@ -63,7 +63,7 @@ def draw_predict_trail(win,index,start,end,width):
     pygame.draw.aaline(win, (252, 3, 236),start,end,width)
 
 def draw_true_trail(win, index, start, end, width):
-    pygame.draw.aaline(win, (11, 252, 3), start, end, width)
+    pygame.draw.aaline(win, (0, 0, 0), start, end, width)
 
 def quit_screen(): #TOBE TEST
     for event in pygame.event.get():

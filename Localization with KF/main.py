@@ -19,12 +19,12 @@ def main():
 	pygame.display.set_caption('Simulator')
 	win.fill((173, 216, 230))
 	bot_c = Point(50, 50)
-	angle = 0
+	angle = np.pi*1.5
 	controller = Motion(bot_c, angle)
 	sensor_model = Sensor()
 	correction = False
 	A= np.identity(3)
-	R = np.array([[0.1,0,0],[0,0.1,0],[0,0,0.1]])
+	R = np.array([[0.2,0,0],[0,0.2,0],[0,0,0.2]])
 	cov = np.array([[0.1,0,0],[0,0.1,0],[0,0,0.1]])
 	mu = np.array([50,50,0])
 	pose_tracker = Pose()
@@ -85,9 +85,9 @@ def main():
 		angle = state[2]
 		correction = False
 #		print("Ellipses:", ellipse_trail)
-		for i in range(len(ellipse_trail)-1):
-			pgfx.ellipse(win, int(ellipse_trail[i][0]), int(500-ellipse_trail[i][1]), int(ellipse_trail[i][2]) , int(0.7*ellipse_trail[i][3]), (252, 157, 3))
-			i+=20
+		while i < len(ellipse_trail)-1:
+			pgfx.ellipse(win, int(ellipse_trail[i][0]), int(500-ellipse_trail[i][1]), int(ellipse_trail[i][2]) , int(ellipse_trail[i][3]), (252, 157, 3))
+			i+=1
             
 		maze.update_screen(win, bot_c, angle=angle, radius=controller.radius)
         
@@ -95,6 +95,6 @@ def main():
 		predict_trail += predicted_state
 		true_state = [[int(bot_c.x), int(bot_c.y)]]
 		true_trail += true_state
-		print("cov :", cov)
+#		print("cov :", cov)
 
 main()
