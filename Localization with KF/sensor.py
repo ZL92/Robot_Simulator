@@ -14,8 +14,8 @@ from visualization import *
 
 ########### Class ###########
 class Sensor(object):
-    nr_sensors = 360
-    sensor_range = 100
+    nr_sensors = 720
+    sensor_range = 140
 
     def __init__(self):
         self.sensors_lines = [None] * self.nr_sensors

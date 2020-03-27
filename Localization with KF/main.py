@@ -2,6 +2,7 @@ from motion_control import Motion
 from sensor import *
 import maze
 import pygame
+import pygame.gfxdraw as pgfx
 from shapely.geometry import *
 from visualization import *
 from track_pose import Pose
@@ -11,6 +12,8 @@ import numpy as np
 def main():
 	run = True
 	predict_trail = []
+	true_trail = []
+	ellipse_trail = []
 	pygame.init()
 	win = pygame.display.set_mode((maze.map_width, maze.map_height))
 	pygame.display.set_caption('Simulator')
@@ -21,7 +24,7 @@ def main():
 	sensor_model = Sensor()
 	correction = False
 	A= np.identity(3)
-	R = np.array([[0,0,0],[0,0,0],[0,0,0]])
+	R = np.array([[0.1,0,0],[0,0.1,0],[0,0,0.1]])
 	cov = np.array([[0.1,0,0],[0,0.1,0],[0,0,0.1]])
 	mu = np.array([50,50,0])
 	pose_tracker = Pose()
@@ -36,7 +39,6 @@ def main():
         
         ########## TODO :  Move into correct files
 		if cnt > 2:
-#				print("{} Beacons detected, List: {}\nDist List: {}".format(cnt, detected_list, dist_list))
                 
 				C1 = (dist_list[0]**2-dist_list[1]**2 - detected_list[0][0]**2 + detected_list[1][0]**2 - detected_list[0][1]**2 + detected_list[1][1]**2)
 				F1 = (dist_list[1]**2-dist_list[2]**2 - detected_list[1][0]**2 + detected_list[2][0]**2 - detected_list[1][1]**2 + detected_list[2][1]**2)
@@ -48,20 +50,7 @@ def main():
 				new_x = ((C1*E1) - (F1*B1)) / ((E1*A1) - (B1*D1))
 				new_y = 500 - (((C1*D1) - (A1*F1)) / ((B1*D1) - (A1*E1)))
 				correction = True
-				#print(new_x,new_y,state[0],state[1])
-#				print("NEW X/Y = ", (new_x, new_y))
-                
-#		print("Lenght of det list: {}\nLength of dist list: {}".format(len(detected_list), len(dist_list)))
-        ## 2 eq. 2 Unknown:
-        # x = CE - FB / EA - BD
-        # y = CD - AF / BD - E
-        
 
-#        for i in range(len(detected_list)):
-            
-#        (x - x1)^2 + (y - y1)^2 = r^2_i
-        
-        
         #####################
 
 
@@ -77,14 +66,35 @@ def main():
 			C = np.identity(3)
 			Q = np.array([[0.01,0,0],[0,0.01,0],[0,0,0.01]])
 			mu,cov = pose_tracker.correction(mu_bar,cov_bar,C,Q,Z.T)
-		predicted_state = [[int(mu[0]),int(500-mu[1])]]
-		predict_trail += predicted_state
+		ellipse_state = [[mu[0], mu[1], cov[0,0], cov[1,1]]]
+		ellipse_trail += ellipse_state
+
+        
+
+        
 		while i < len(predict_trail)-1:
-			maze.draw_predict_trail(win,i,predict_trail[i],predict_trail[i+1],1)
+			maze.draw_predict_trail(win,i,predict_trail[i],predict_trail[i+1],3)
+			i+=3
+        
+		for i in range(len(true_trail)-1):
+			maze.draw_true_trail(win, i, true_trail[i], true_trail[i+1],2)
 			i+=1
+            
 		bot_c = Point(state[0], 500 -state[1])
+
 		angle = state[2]
 		correction = False
+#		print("Ellipses:", ellipse_trail)
+		for i in range(len(ellipse_trail)-1):
+			pgfx.ellipse(win, int(ellipse_trail[i][0]), int(500-ellipse_trail[i][1]), int(ellipse_trail[i][2]) , int(0.7*ellipse_trail[i][3]), (252, 157, 3))
+			i+=20
+            
 		maze.update_screen(win, bot_c, angle=angle, radius=controller.radius)
+        
+		predicted_state = [[int(mu[0]),int(500-mu[1])]]
+		predict_trail += predicted_state
+		true_state = [[int(bot_c.x), int(bot_c.y)]]
+		true_trail += true_state
+		print("cov :", cov)
 
 main()
