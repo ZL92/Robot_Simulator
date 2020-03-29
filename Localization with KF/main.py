@@ -18,15 +18,15 @@ def main():
 	win = pygame.display.set_mode((maze.map_width, maze.map_height))
 	pygame.display.set_caption('Simulator')
 	win.fill((173, 216, 230))
-	bot_c = Point(50, 50)
-	angle = np.pi*1.5
+	bot_c = Point(50, 450)
+	angle = np.pi
 	controller = Motion(bot_c, angle)
 	sensor_model = Sensor()
 	correction = False
 	A= np.identity(3)
-	R = np.array([[0.2,0,0],[0,0.2,0],[0,0,0.2]])
+	R = np.array([[0.15,0,0],[0,0.25,0],[0,0,0.2]])
 	cov = np.array([[0.1,0,0],[0,0.1,0],[0,0,0.1]])
-	mu = np.array([50,50,0])
+	mu = np.array([50,450,0])
 	pose_tracker = Pose()
 
 	while run:
@@ -36,7 +36,8 @@ def main():
 		maze.draw_beacons(win)
 		sensor_model.initilize_sensors(bot_c, angle)
 		cnt, detected_list, dist_list, angle_list = sensor_model.draw_sensors(win, maze.beacons, bot_c, controller.radius, angle)
-        
+		angle_pred = np.mean(angle_list)
+		print("angle pred: {}, list: {}".format(angle_pred,  angle_list))
         ########## TODO :  Move into correct files
 		if cnt > 2:
                 
@@ -62,7 +63,7 @@ def main():
 		mu_bar,cov_bar = pose_tracker.prediction(A,B,u,R,mu,cov)
 		mu,cov = mu_bar,cov_bar
 		if(correction):
-			Z = np.array([new_x,new_y,state[2]])
+			Z = np.array([new_x,new_y,angle_pred]) #state[2]])
 			C = np.identity(3)
 			Q = np.array([[0.01,0,0],[0,0.01,0],[0,0,0.01]])
 			mu,cov = pose_tracker.correction(mu_bar,cov_bar,C,Q,Z.T)
@@ -80,11 +81,10 @@ def main():
 			maze.draw_true_trail(win, i, true_trail[i], true_trail[i+1],2)
 			i+=1
             
-		bot_c = Point(state[0], 500 -state[1])
+		bot_c = Point(state[0], 500-state[1])
 
 		angle = state[2]
 		correction = False
-#		print("Ellipses:", ellipse_trail)
 		while i < len(ellipse_trail)-1:
 			pgfx.ellipse(win, int(ellipse_trail[i][0]), int(500-ellipse_trail[i][1]), int(ellipse_trail[i][2]) , int(ellipse_trail[i][3]), (252, 157, 3))
 			i+=1
@@ -95,6 +95,5 @@ def main():
 		predict_trail += predicted_state
 		true_state = [[int(bot_c.x), int(bot_c.y)]]
 		true_trail += true_state
-#		print("cov :", cov)
 
 main()

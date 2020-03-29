@@ -15,7 +15,7 @@ from visualization import *
 ########### Class ###########
 class Sensor(object):
     nr_sensors = 720
-    sensor_range = 140
+    sensor_range = 150
 
     def __init__(self):
         self.sensors_lines = [None] * self.nr_sensors
@@ -57,7 +57,7 @@ class Sensor(object):
                     dist_list.append(dist)        
                     # print("N sensors: ", len(self.sensors_lines))
                     # print("Sensor #{}, angle = {}".format(i, (i*360/len(self.sensors_lines))))
-                    # angle_list.append((i*360/len(self.sensors_lines)))
+                    angle_list.append((i*360/len(self.sensors_lines)))
             else:
                 pass                
         return count_det, detected_list, dist_list, angle_list
