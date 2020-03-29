@@ -52,45 +52,43 @@ def main():
 				new_y = 500 - (((C1*D1) - (A1*F1)) / ((B1*D1) - (A1*E1)))
 				correction = True
 
+				# theta =controller.get_theta(detected_list, bot_c, angle)
+
         #####################
 
 
 		v, w = controller.update_speed()
-		state,B = controller.update_pos()
-		u = np.array([v,w]).T
+		state, B = controller.update_pos()
+		u = np.array([v, w]).T
 			#mu = state.T + np.random.normal(0,1,3).T
 		i = 0
-		mu_bar,cov_bar = pose_tracker.prediction(A,B,u,R,mu,cov)
-		mu,cov = mu_bar,cov_bar
+		mu_bar, cov_bar = pose_tracker.prediction(A, B, u, R, mu, cov)
+		mu, cov = mu_bar, cov_bar
 		if(correction):
-			Z = np.array([new_x,new_y,angle_pred]) #state[2]])
+			Z = np.array([new_x,new_y,state[2]])
 			C = np.identity(3)
-			Q = np.array([[0.01,0,0],[0,0.01,0],[0,0,0.01]])
-			mu,cov = pose_tracker.correction(mu_bar,cov_bar,C,Q,Z.T)
+			Q = np.array([[0.01, 0, 0], [0, 0.01, 0], [0, 0, 0.01]])
+			mu, cov = pose_tracker.correction(mu_bar, cov_bar, C, Q, Z.T)
 		ellipse_state = [[mu[0], mu[1], cov[0,0], cov[1,1]]]
 		ellipse_trail += ellipse_state
-
-        
 
         
 		while i < len(predict_trail)-1:
 			maze.draw_predict_trail(win,i,predict_trail[i],predict_trail[i+1],3)
 			i+=3
-        
 		for i in range(len(true_trail)-1):
 			maze.draw_true_trail(win, i, true_trail[i], true_trail[i+1],2)
 			i+=1
             
-		bot_c = Point(state[0], 500-state[1])
+		bot_c = Point(state[0], 500 -state[1])
 
 		angle = state[2]
 		correction = False
+#		print("Ellipses:", ellipse_trail)
 		while i < len(ellipse_trail)-1:
 			pgfx.ellipse(win, int(ellipse_trail[i][0]), int(500-ellipse_trail[i][1]), int(ellipse_trail[i][2]) , int(ellipse_trail[i][3]), (252, 157, 3))
 			i+=1
-            
 		maze.update_screen(win, bot_c, angle=angle, radius=controller.radius)
-        
 		predicted_state = [[int(mu[0]),int(500-mu[1])]]
 		predict_trail += predicted_state
 		true_state = [[int(bot_c.x), int(bot_c.y)]]

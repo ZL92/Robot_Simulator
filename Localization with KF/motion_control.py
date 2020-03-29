@@ -20,8 +20,8 @@ class Motion(object):
         self.coord_x = bot_c.x
         self.coord_y = bot_c.y
         self.angle = angle
-        self.v = 0
-        self.w = 0
+        self.v = 5
+        self.w = 2
         self.radius = 15
         self.deltaT = 2
         self.state = np.array([self.coord_x, self.coord_y, self.angle])
@@ -61,3 +61,8 @@ class Motion(object):
         elif self.state[2] < -2 * np.pi:
             self.state[2] = self.state[2] + 2 * np.pi
         return self.state, self.movement_matrix
+
+    def get_theta(self, detected_list, bot_c, angle):
+        phi = []
+        for position in detected_list:
+            phi = np.arctan((position[1] - bot_c.y) / (position[0] - bot_c.x))

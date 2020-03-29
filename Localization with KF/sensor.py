@@ -71,7 +71,6 @@ def distance(p1, p2):
 
 def sensing_beacons(beacon_list, radius, sensors_line, sensor_range, bot_c):
     """
-    
     :returns: detect (Bool), dist (int/float), inter_pt (Point)
     """
     detect = False
