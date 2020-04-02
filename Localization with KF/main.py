@@ -38,7 +38,9 @@ def main():
 		cnt, detected_list, dist_list, angle_list = sensor_model.draw_sensors(win, maze.beacons, bot_c, controller.radius, angle)
 		angle_pred = np.mean(angle_list)
 		print("angle pred: {}, list: {}".format(angle_pred,  angle_list))
-        ########## TODO :  Move into correct files
+
+
+        ########## Triangulation ##########
 		if cnt > 2:
                 
 				C1 = (dist_list[0]**2-dist_list[1]**2 - detected_list[0][0]**2 + detected_list[1][0]**2 - detected_list[0][1]**2 + detected_list[1][1]**2)
@@ -52,7 +54,6 @@ def main():
 				new_y = 500 - (((C1*D1) - (A1*F1)) / ((B1*D1) - (A1*E1)))
 				correction = True
 
-				# theta =controller.get_theta(detected_list, bot_c, angle)
 
         #####################
 
